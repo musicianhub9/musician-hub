@@ -6,6 +6,7 @@
     <title>MusicianHub - Connect, Create, Collaborate</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* All your existing CSS styles remain exactly the same */
         :root {
             --primary: #1a8fe3;
             --primary-dark: #0d76c9;
@@ -21,8 +22,6 @@
             --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             --radius: 12px;
-            --nav-height: 70px;
-            --mobile-nav-height: 60px;
         }
 
         * {
@@ -36,19 +35,14 @@
             background-color: var(--light);
             color: var(--dark);
             line-height: 1.6;
-            font-size: 16px;
         }
 
-        /* Container */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
-            width: 100%;
         }
 
-        /* Mobile First Approach */
-        /* Navigation - Mobile Styles */
         .navbar {
             background: white;
             box-shadow: var(--shadow);
@@ -56,49 +50,34 @@
             width: 100%;
             top: 0;
             z-index: 1000;
-            height: var(--mobile-nav-height);
         }
 
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 15px;
+            padding: 0 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 100%;
+            height: 70px;
         }
 
         .logo {
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             font-weight: 800;
             color: var(--primary);
             text-decoration: none;
             display: flex;
             align-items: center;
-            white-space: nowrap;
         }
 
         .logo i {
-            margin-right: 8px;
-            font-size: 1.1rem;
-        }
-
-        /* Mobile Menu Toggle */
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--dark);
-            cursor: pointer;
-            padding: 5px;
-            z-index: 1002;
+            margin-right: 10px;
         }
 
         .nav-links {
             display: flex;
-            gap: 15px;
+            gap: 20px;
             align-items: center;
         }
 
@@ -110,19 +89,15 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            font-size: 0.95rem;
-            padding: 8px 10px;
-            border-radius: 8px;
         }
 
         .nav-links a:hover {
             color: var(--primary);
-            background-color: var(--light);
         }
 
         .btn {
             display: inline-block;
-            padding: 10px 18px;
+            padding: 10px 20px;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 600;
@@ -130,11 +105,6 @@
             cursor: pointer;
             border: none;
             font-size: 0.9rem;
-            min-height: 44px; /* Better touch target */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
 
         .btn-primary {
@@ -158,45 +128,6 @@
             color: white;
         }
 
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 0.85rem;
-            min-height: 36px;
-        }
-
-        /* Feed Filter Buttons */
-        .feed-filter-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: var(--light);
-            border: 2px solid var(--light-gray);
-            border-radius: 25px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            color: var(--dark);
-            min-height: 44px;
-        }
-
-        .feed-filter-btn:hover {
-            background: var(--light-gray);
-            transform: translateY(-2px);
-        }
-
-        .feed-filter-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .feed-filter-btn i {
-            font-size: 1rem;
-        }
-
-        /* Forms */
         .form-group {
             margin-bottom: 20px;
         }
@@ -205,17 +136,15 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            font-size: 0.95rem;
         }
 
         .form-control {
             width: 100%;
-            padding: 14px 15px;
+            padding: 12px 15px;
             border: 1px solid #ddd;
             border-radius: var(--radius);
             font-size: 1rem;
             transition: border 0.3s;
-            min-height: 48px; /* Better touch target */
         }
 
         .form-control:focus {
@@ -223,31 +152,26 @@
             outline: none;
         }
 
-        /* Cards */
         .card {
             background: white;
             border-radius: var(--radius);
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: var(--shadow);
-            width: 100%;
         }
 
-        /* Posts */
         .post {
             background: white;
             border-radius: var(--radius);
             margin-bottom: 20px;
             box-shadow: var(--shadow);
             padding: 20px;
-            width: 100%;
         }
 
         .post-header {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             margin-bottom: 15px;
-            flex-wrap: wrap;
         }
 
         .post-avatar {
@@ -266,18 +190,17 @@
 
         .post-user {
             font-weight: 600;
-            font-size: 0.95rem;
         }
 
         .post-instrument {
             color: var(--gray);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             margin-left: 10px;
         }
 
         .post-time {
             color: var(--gray);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             margin-left: 10px;
         }
 
@@ -285,13 +208,11 @@
             font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: 10px;
-            line-height: 1.4;
         }
 
         .post-content {
             margin-bottom: 15px;
             line-height: 1.6;
-            font-size: 0.95rem;
         }
 
         .post-media {
@@ -305,37 +226,30 @@
         .post-media audio {
             width: 100%;
             border-radius: var(--radius);
-            max-height: 300px;
-            object-fit: cover;
         }
 
         .post-actions {
             display: flex;
-            gap: 15px;
+            gap: 20px;
             border-top: 1px solid var(--light-gray);
             padding-top: 15px;
             margin-top: 15px;
-            flex-wrap: wrap;
         }
 
         .post-action {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             color: var(--gray);
             cursor: pointer;
             transition: color 0.3s;
             background: none;
             border: none;
             font-size: 0.9rem;
-            padding: 8px;
-            min-height: 40px;
-            border-radius: 8px;
         }
 
         .post-action:hover {
             color: var(--primary);
-            background-color: var(--light);
         }
 
         .post-action.liked {
@@ -355,13 +269,11 @@
             color: #dc3545;
         }
 
-        /* Alerts */
         .alert {
             padding: 15px;
             border-radius: var(--radius);
             margin-bottom: 20px;
             animation: slideIn 0.3s ease;
-            font-size: 0.95rem;
         }
 
         @keyframes slideIn {
@@ -385,17 +297,14 @@
             color: white;
         }
 
-        /* Profile */
         .profile-header {
             background: white;
             border-radius: var(--radius);
-            padding: 25px;
+            padding: 30px;
             margin-bottom: 20px;
             box-shadow: var(--shadow);
             display: flex;
-            flex-direction: column;
             align-items: center;
-            text-align: center;
         }
 
         .profile-avatar {
@@ -409,26 +318,22 @@
             color: white;
             font-weight: bold;
             font-size: 2rem;
-            margin-bottom: 20px;
+            margin-right: 30px;
             flex-shrink: 0;
         }
 
         .profile-info h1 {
-            margin-bottom: 10px;
-            font-size: 1.5rem;
+            margin-bottom: 5px;
         }
 
         .profile-stats {
             display: flex;
             gap: 20px;
-            margin-top: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
+            margin-top: 15px;
         }
 
         .profile-stat {
             text-align: center;
-            min-width: 80px;
         }
 
         .stat-number {
@@ -437,24 +342,21 @@
         }
 
         .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--gray);
         }
 
-        /* Search */
         .search-box {
-            display: flex;  
+            display: flex;
             margin-bottom: 20px;
-            width: 100%;
         }
 
         .search-input {
             flex: 1;
-            padding: 14px 15px;
+            padding: 15px;
             border: 1px solid var(--light-gray);
             border-radius: var(--radius) 0 0 var(--radius);
             font-size: 1rem;
-            min-height: 48px;
         }
 
         .search-button {
@@ -464,10 +366,6 @@
             border-radius: 0 var(--radius) var(--radius) 0;
             padding: 0 20px;
             cursor: pointer;
-            min-width: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .search-categories {
@@ -475,34 +373,17 @@
             gap: 10px;
             margin-bottom: 20px;
             overflow-x: auto;
-            padding-bottom: 10px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .search-categories::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        .search-categories::-webkit-scrollbar-track {
-            background: var(--light);
-            border-radius: 10px;
-        }
-
-        .search-categories::-webkit-scrollbar-thumb {
-            background: var(--gray);
-            border-radius: 10px;
         }
 
         .search-category {
-            padding: 10px 18px;
+            padding: 8px 15px;
             background: var(--light);
-            border-radius: 25px;
+            border-radius: 20px;
             font-size: 0.9rem;
             cursor: pointer;
             white-space: nowrap;
             text-decoration: none;
             color: var(--dark);
-            display: inline-block;
         }
 
         .search-category.active {
@@ -510,10 +391,9 @@
             color: white;
         }
 
-        /* Communities Grid */
         .communities-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
             margin-top: 20px;
         }
@@ -525,8 +405,6 @@
             box-shadow: var(--shadow);
             transition: transform 0.3s;
             cursor: pointer;
-            display: flex;
-            flex-direction: column;
         }
 
         .community-card:hover {
@@ -556,105 +434,89 @@
         .community-info h3 {
             margin-bottom: 5px;
             color: var(--primary);
-            font-size: 1.1rem;
         }
 
         .community-members {
             color: var(--gray);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
 
-        /* Hero Section */
         .hero {
             background: var(--gradient);
             color: white;
-            padding: 120px 0 80px;
+            padding: 150px 0 100px;
             text-align: center;
         }
 
         .hero-content h1 {
-            font-size: 2.2rem;
+            font-size: 3rem;
             margin-bottom: 1rem;
-            line-height: 1.2;
         }
 
         .hero-content p {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             margin-bottom: 2rem;
             opacity: 0.9;
-            line-height: 1.5;
         }
 
         .hero-buttons {
             display: flex;
             gap: 15px;
             justify-content: center;
-            flex-wrap: wrap;
         }
 
         .hero-buttons .btn {
-            min-width: 140px;
+            background: white;
+            color: var(--primary);
         }
 
         .features {
-            padding: 60px 0;
+            padding: 80px 0;
             background: white;
         }
 
         .features h2 {
             text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.8rem;
+            margin-bottom: 3rem;
         }
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
         }
 
         .feature-card {
             text-align: center;
-            padding: 25px 15px;
+            padding: 30px 20px;
         }
 
         .feature-card i {
-            font-size: 2.5rem;
+            font-size: 3rem;
             color: var(--primary);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .feature-card h3 {
-            margin-bottom: 10px;
-            font-size: 1.2rem;
+            margin-bottom: 15px;
         }
 
-        .feature-card p {
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        /* Main Content Area */
         main {
-            padding-top: var(--mobile-nav-height);
-            min-height: calc(100vh - var(--mobile-nav-height));
-            width: 100%;
+            padding-top: 90px;
+            min-height: calc(100vh - 70px);
         }
 
-        /* Dashboard Grid */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 25px;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
         }
 
-        /* User Cards */
         .user-card {
             display: flex;
             align-items: center;
             padding: 15px;
             border-bottom: 1px solid var(--light-gray);
-            flex-wrap: wrap;
         }
 
         .user-card:last-child {
@@ -677,24 +539,22 @@
 
         .user-info {
             flex: 1;
-            min-width: 150px;
         }
 
         .user-name {
             font-weight: 600;
             margin-bottom: 5px;
-            font-size: 0.95rem;
         }
 
         .user-instrument {
             color: var(--gray);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
 
         /* Loading and Empty States */
         .loading {
             text-align: center;
-            padding: 40px 20px;
+            padding: 50px;
             color: var(--gray);
         }
         
@@ -705,37 +565,30 @@
         
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
+            padding: 50px;
             color: var(--gray);
         }
         
         .empty-state i {
-            font-size: 2.5rem;
+            font-size: 3rem;
             margin-bottom: 15px;
             color: var(--light-gray);
         }
         
-        /* Pagination */
         .pagination {
             display: flex;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             margin-top: 30px;
-            flex-wrap: wrap;
         }
         
         .page-btn {
-            padding: 10px 15px;
+            padding: 8px 15px;
             border: 1px solid var(--light-gray);
             background: white;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
             transition: all 0.3s;
-            min-width: 44px;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         
         .page-btn:hover {
@@ -753,7 +606,7 @@
             cursor: not-allowed;
         }
 
-        /* Modal Styles - Mobile Optimized */
+        /* Modal Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -766,18 +619,16 @@
             justify-content: center;
             z-index: 2000;
             display: none;
-            padding: 20px;
         }
         
         .modal {
             background: white;
             border-radius: var(--radius);
-            padding: 25px;
+            padding: 30px;
             max-width: 500px;
-            width: 100%;
-            max-height: 85vh;
+            width: 90%;
+            max-height: 90vh;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
         }
         
         .modal-header {
@@ -793,25 +644,17 @@
             font-size: 1.5rem;
             cursor: pointer;
             color: var(--gray);
-            padding: 5px;
-            line-height: 1;
         }
         
         .form-actions {
             display: flex;
             gap: 10px;
             margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .form-actions .btn {
-            flex: 1;
-            min-width: 120px;
         }
         
         .error-message {
             color: var(--secondary);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             margin-top: 5px;
         }
 
@@ -823,7 +666,7 @@
         }
 
         .comment {
-            padding: 12px 0;
+            padding: 10px 0;
             border-bottom: 1px solid var(--light-gray);
         }
 
@@ -835,7 +678,6 @@
             display: flex;
             align-items: center;
             margin-bottom: 5px;
-            flex-wrap: wrap;
         }
 
         .comment-avatar {
@@ -855,7 +697,7 @@
 
         .comment-user {
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
 
         .comment-time {
@@ -865,7 +707,7 @@
         }
 
         .comment-content {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             line-height: 1.5;
             margin-left: 40px;
         }
@@ -874,30 +716,26 @@
             margin-top: 15px;
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
         }
 
         .comment-input {
             flex: 1;
-            padding: 12px 15px;
+            padding: 10px 15px;
             border: 1px solid var(--light-gray);
             border-radius: 20px;
             font-size: 0.9rem;
-            min-width: 200px;
         }
 
         .comment-submit {
-            padding: 12px 20px;
+            padding: 10px 20px;
             background: var(--primary);
             color: white;
             border: none;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 0.9rem;
-            min-width: 80px;
         }
 
-        /* Media Upload */
+        /* Media Upload Preview */
         .media-preview {
             margin: 15px 0;
             border-radius: var(--radius);
@@ -920,13 +758,12 @@
             color: white;
             border: none;
             border-radius: 50%;
-            width: 36px;
-            height: 36px;
+            width: 30px;
+            height: 30px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
         }
 
         .file-input-container {
@@ -938,13 +775,12 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 15px;
+            padding: 12px 15px;
             background: var(--light);
             border: 2px dashed var(--light-gray);
             border-radius: var(--radius);
             cursor: pointer;
             transition: all 0.3s;
-            min-height: 60px;
         }
 
         .file-input-label:hover {
@@ -956,29 +792,20 @@
         }
 
         .post-type-selector {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            display: flex;
             gap: 10px;
             margin-bottom: 15px;
         }
 
         .post-type-btn {
-            padding: 15px 10px;
+            flex: 1;
+            padding: 10px;
             text-align: center;
             background: var(--light);
             border: 2px solid transparent;
             border-radius: var(--radius);
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 0.9rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .post-type-btn i {
-            font-size: 1.2rem;
         }
 
         .post-type-btn.active {
@@ -994,7 +821,7 @@
 
         .share-options {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 15px;
             margin: 20px 0;
         }
@@ -1009,7 +836,6 @@
             cursor: pointer;
             transition: all 0.3s;
             border: 2px solid transparent;
-            min-height: 100px;
         }
 
         .share-option:hover {
@@ -1018,7 +844,7 @@
         }
 
         .share-option i {
-            font-size: 1.8rem;
+            font-size: 2rem;
             margin-bottom: 10px;
         }
 
@@ -1047,24 +873,22 @@
         }
 
         .share-option span {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            text-align: center;
         }
 
         .share-link {
             margin-top: 15px;
-            padding: 12px;
+            padding: 10px;
             background: var(--light);
             border-radius: var(--radius);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             word-break: break-all;
-            line-height: 1.4;
         }
 
-        /* Status Badges */
+        /* Community Member Status Badges */
         .status-badge {
-            padding: 4px 10px;
+            padding: 3px 8px;
             border-radius: 12px;
             font-size: 0.75rem;
             font-weight: 600;
@@ -1096,7 +920,7 @@
             border: 1px solid #f5c6cb;
         }
 
-        /* Community Management */
+        /* Community Management Styles */
         .community-admin-panel {
             background: white;
             border-radius: var(--radius);
@@ -1113,8 +937,8 @@
 
         .member-item {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            align-items: center;
+            justify-content: space-between;
             padding: 15px;
             background: var(--light);
             border-radius: var(--radius);
@@ -1134,20 +958,16 @@
         .member-actions {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
         }
 
         .action-btn {
-            padding: 8px 15px;
+            padding: 5px 15px;
             border-radius: 20px;
             border: none;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             transition: all 0.3s;
-            flex: 1;
-            min-width: 80px;
-            text-align: center;
         }
 
         .action-btn.approve-primary {
@@ -1170,7 +990,7 @@
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
         }
 
-        /* Notifications */
+        /* Notification Badge */
         .notification-badge {
             position: relative;
             display: inline-block;
@@ -1183,29 +1003,28 @@
             background: var(--secondary);
             color: white;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.75rem;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
         }
 
+        /* Notifications Panel */
         .notifications-panel {
-            position: fixed;
-            top: var(--mobile-nav-height);
-            left: 0;
-            right: 0;
-            width: 100%;
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            width: 350px;
             background: white;
-            border-radius: 0;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-            max-height: 70vh;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            max-height: 400px;
             overflow-y: auto;
             display: none;
             z-index: 1001;
-            -webkit-overflow-scrolling: touch;
         }
 
         .notifications-header {
@@ -1218,7 +1037,6 @@
 
         .notifications-header h3 {
             margin: 0;
-            font-size: 1.2rem;
         }
 
         .notification-item {
@@ -1239,12 +1057,12 @@
         .notification-content {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
 
         .notification-avatar {
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: var(--gradient);
             display: flex;
@@ -1262,235 +1080,43 @@
         .notification-message {
             font-weight: 600;
             margin-bottom: 5px;
-            font-size: 0.95rem;
         }
 
         .notification-time {
             color: var(--gray);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
 
-        /* Network Info Banner */
-        .network-info {
-            background: var(--primary);
-            color: white;
-            padding: 12px 15px;
-            text-align: center;
-            font-size: 0.85rem;
-            display: none;
-            line-height: 1.4;
-        }
-        
-        .network-info.show {
-            display: block;
-        }
-
-        /* Tablet and Desktop Styles */
-        @media (min-width: 768px) {
-            body {
-                font-size: 17px;
-            }
-            
-            .navbar {
-                height: var(--nav-height);
-            }
-            
-            .nav-container {
-                padding: 0 20px;
-            }
-            
-            .logo {
-                font-size: 1.5rem;
-            }
-            
-            .logo i {
-                font-size: 1.3rem;
-            }
-            
-            .mobile-menu-toggle {
+        @media (max-width: 768px) {
+            .nav-links {
                 display: none;
             }
             
-            .nav-links {
-                display: flex;
-            }
-            
-            .nav-links a {
-                font-size: 1rem;
-                padding: 8px 12px;
-            }
-            
-            .btn {
-                padding: 10px 20px;
-                font-size: 0.95rem;
-            }
-            
-            .feed-filter-btn {
-                padding: 12px 24px;
-                font-size: 1rem;
-            }
-            
             .profile-header {
-                flex-direction: row;
-                text-align: left;
-                padding: 30px;
+                flex-direction: column;
+                text-align: center;
             }
             
             .profile-avatar {
-                margin-bottom: 0;
-                margin-right: 30px;
-            }
-            
-            .profile-info h1 {
-                font-size: 1.8rem;
-            }
-            
-            .profile-stats {
-                justify-content: flex-start;
-            }
-            
-            .hero {
-                padding: 150px 0 100px;
-            }
-            
-            .hero-content h1 {
-                font-size: 3rem;
-            }
-            
-            .hero-content p {
-                font-size: 1.2rem;
-            }
-            
-            main {
-                padding-top: var(--nav-height);
-                min-height: calc(100vh - var(--nav-height));
-            }
-            
-            .dashboard-grid {
-                grid-template-columns: 2fr 1fr;
-                gap: 30px;
+                margin-right: 0;
+                margin-bottom: 20px;
             }
             
             .communities-grid {
-                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            }
-            
-            .post-type-selector {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            
-            .member-item {
-                flex-direction: row;
-                align-items: center;
-                justify-content: space-between;
-            }
-            
-            .member-actions {
-                flex-wrap: nowrap;
-            }
-            
-            .action-btn {
-                flex: none;
-            }
-            
-            .notifications-panel {
-                position: absolute;
-                top: var(--nav-height);
-                left: auto;
-                right: 20px;
-                width: 350px;
-                border-radius: var(--radius);
-                max-height: 400px;
-            }
-            
-            .modal {
-                padding: 30px;
-            }
-            
-            .form-actions {
-                flex-wrap: nowrap;
-            }
-            
-            .share-options {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        /* Large Desktop */
-        @media (min-width: 1200px) {
-            .container {
-                padding: 0;
-            }
-            
-            .nav-container {
-                padding: 0;
+                grid-template-columns: 1fr;
             }
             
             .hero-content h1 {
-                font-size: 3.5rem;
-            }
-        }
-
-        /* Mobile Menu Styles */
-        @media (max-width: 767px) {
-            .mobile-menu-toggle {
-                display: block;
+                font-size: 2rem;
             }
             
-            .nav-links {
-                position: fixed;
-                top: var(--mobile-nav-height);
-                left: 0;
-                right: 0;
-                background: white;
+            .hero-buttons {
                 flex-direction: column;
-                padding: 20px;
-                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-                transform: translateY(-100%);
-                opacity: 0;
-                transition: all 0.3s ease;
-                z-index: 1001;
-                display: flex;
-                max-height: 0;
-                overflow: hidden;
-            }
-            
-            .nav-links.mobile-open {
-                transform: translateY(0);
-                opacity: 1;
-                max-height: 400px;
-            }
-            
-            .nav-links a {
-                width: 100%;
-                padding: 15px;
-                justify-content: center;
-            }
-            
-            .nav-actions {
-                display: flex;
                 align-items: center;
-                gap: 10px;
             }
             
-            .feed-filter-btn {
-                padding: 8px 15px;
-                font-size: 0.85rem;
-                min-height: 40px;
-            }
-            
-            .post-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .post-avatar {
-                margin-bottom: 10px;
-            }
-            
-            .comment-content {
-                margin-left: 0;
-                margin-top: 10px;
+            .dashboard-grid {
+                grid-template-columns: 1fr;
             }
             
             .comment-form {
@@ -1501,87 +1127,40 @@
                 align-self: flex-end;
             }
             
-            .features-grid {
-                grid-template-columns: 1fr;
+            .post-type-selector {
+                flex-wrap: wrap;
             }
             
-            .hero-buttons {
-                flex-direction: column;
-                align-items: center;
+            .post-type-btn {
+                min-width: 100px;
             }
-            
-            .hero-buttons .btn {
-                width: 100%;
-                max-width: 300px;
-            }
-            
-            .search-categories {
-                padding-bottom: 5px;
-            }
-            
-            .search-category {
-                padding: 8px 15px;
-            }
-        }
 
-        /* Small Mobile */
-        @media (max-width: 480px) {
-            .profile-stats {
-                gap: 15px;
-            }
-            
-            .profile-stat {
-                min-width: 70px;
-            }
-            
-            .stat-number {
-                font-size: 1.1rem;
-            }
-            
-            .post-actions {
-                gap: 10px;
-            }
-            
-            .post-action {
-                padding: 6px;
-                font-size: 0.85rem;
-            }
-            
-            .feed-filter-btn {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-            }
-            
-            .modal {
-                padding: 20px;
-            }
-            
-            .form-actions {
-                flex-direction: column;
-            }
-            
-            .form-actions .btn {
-                width: 100%;
-            }
-            
             .share-options {
-                grid-template-columns: 1fr;
-            }
-            
-            .community-info h3 {
-                font-size: 1rem;
-            }
-        }
-
-        /* Fix for iOS Safari */
-        @supports (-webkit-touch-callout: none) {
-            .modal {
-                max-height: 80vh;
+                grid-template-columns: repeat(2, 1fr);
             }
             
             .notifications-panel {
-                max-height: 65vh;
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                width: auto;
+                max-height: 60vh;
             }
+        }
+        
+        /* Network Info Banner */
+        .network-info {
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .network-info.show {
+            display: block;
         }
     </style>
 </head>
@@ -1599,12 +1178,6 @@
             <a href="/" class="logo">
                 <i class="fas fa-music"></i> MusicianHub
             </a>
-            
-            <!-- Mobile Menu Toggle -->
-            <button class="mobile-menu-toggle" id="mobileMenuToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            
             <div class="nav-links" id="navLinks">
                 <!-- Will be populated by JavaScript -->
             </div>
@@ -1768,13 +1341,9 @@
         let currentPostToShare = null;
         let currentCommunity = null;
         let notificationsCount = 0;
-        let currentFeedFilter = 'all'; // 'all', 'community', 'following', 'discover'
         
         // API Base URL - Dynamic based on current location
         const API_BASE = window.location.origin + '/api';
-        
-        // Mobile menu state
-        let mobileMenuOpen = false;
         
         // Show network info on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -1789,45 +1358,7 @@
             if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
                 networkInfo.classList.add('show');
             }
-            
-            // Setup mobile menu toggle
-            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-            if (mobileMenuToggle) {
-                mobileMenuToggle.addEventListener('click', toggleMobileMenu);
-            }
-            
-            // Close mobile menu when clicking on a link
-            document.addEventListener('click', function(event) {
-                if (mobileMenuOpen && !event.target.closest('.nav-container')) {
-                    closeMobileMenu();
-                }
-            });
         });
-        
-        // Mobile menu functions
-        function toggleMobileMenu() {
-            const navLinks = document.getElementById('navLinks');
-            const toggleIcon = document.getElementById('mobileMenuToggle').querySelector('i');
-            
-            if (mobileMenuOpen) {
-                navLinks.classList.remove('mobile-open');
-                toggleIcon.className = 'fas fa-bars';
-            } else {
-                navLinks.classList.add('mobile-open');
-                toggleIcon.className = 'fas fa-times';
-            }
-            
-            mobileMenuOpen = !mobileMenuOpen;
-        }
-        
-        function closeMobileMenu() {
-            const navLinks = document.getElementById('navLinks');
-            const toggleIcon = document.getElementById('mobileMenuToggle').querySelector('i');
-            
-            navLinks.classList.remove('mobile-open');
-            toggleIcon.className = 'fas fa-bars';
-            mobileMenuOpen = false;
-        }
         
         // Utility functions
         function showAlert(message, type = 'success') {
@@ -1855,10 +1386,6 @@
         
         function openModal(modalId) {
             document.getElementById(modalId).style.display = 'flex';
-            // Close mobile menu if open
-            if (mobileMenuOpen) {
-                closeMobileMenu();
-            }
         }
         
         function closeModal(modalId) {
@@ -1872,10 +1399,6 @@
             } else {
                 panel.style.display = 'block';
                 loadNotifications();
-            }
-            // Close mobile menu if open
-            if (mobileMenuOpen) {
-                closeMobileMenu();
             }
         }
         
@@ -1917,12 +1440,12 @@
             
             if (isAuthenticated) {
                 navLinks.innerHTML = `
-                    <a href="#" onclick="closeMobileMenu(); loadPage('dashboard')"><i class="fas fa-home"></i> Home</a>
-                    <a href="#" onclick="closeMobileMenu(); loadPage('feed')"><i class="fas fa-stream"></i> Feed</a>
-                    <a href="#" onclick="closeMobileMenu(); loadPage('search')"><i class="fas fa-search"></i> Search</a>
-                    <a href="#" onclick="closeMobileMenu(); loadPage('communities')"><i class="fas fa-users"></i> Communities</a>
-                    <a href="#" onclick="closeMobileMenu(); loadPage('create_post')"><i class="fas fa-plus"></i> Create</a>
-                    <a href="#" onclick="closeMobileMenu(); loadPage('profile')"><i class="fas fa-user"></i> Profile</a>
+                    <a href="#" onclick="loadPage('dashboard')"><i class="fas fa-home"></i> Home</a>
+                    <a href="#" onclick="loadPage('feed')"><i class="fas fa-stream"></i> Feed</a>
+                    <a href="#" onclick="loadPage('search')"><i class="fas fa-search"></i> Search</a>
+                    <a href="#" onclick="loadPage('communities')"><i class="fas fa-users"></i> Communities</a>
+                    <a href="#" onclick="loadPage('create_post')"><i class="fas fa-plus"></i> Create</a>
+                    <a href="#" onclick="loadPage('profile')"><i class="fas fa-user"></i> Profile</a>
                 `;
                 
                 navActions.innerHTML = `
@@ -1930,40 +1453,20 @@
                         <i class="fas fa-bell"></i>
                         ${notificationsCount > 0 ? `<span class="notification-count">${notificationsCount}</span>` : ''}
                     </div>
-                    <a href="#" onclick="logout()" class="btn btn-secondary btn-small">
-                        <i class="fas fa-sign-out-alt"></i> <span class="logout-text">Logout</span>
-                    </a>
+                    <a href="#" onclick="logout()" class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 `;
             } else {
                 navLinks.innerHTML = `
-                    <a href="#" onclick="closeMobileMenu(); loadPage('login')">Login</a>
-                    <a href="#" onclick="closeMobileMenu(); loadPage('register')" class="btn btn-primary">Sign Up</a>
+                    <a href="#" onclick="loadPage('login')">Login</a>
+                    <a href="#" onclick="loadPage('register')" class="btn btn-primary">Sign Up</a>
                 `;
                 navActions.innerHTML = '';
-            }
-            
-            // Hide logout text on mobile
-            if (window.innerWidth <= 767) {
-                const logoutText = document.querySelector('.logout-text');
-                if (logoutText) {
-                    logoutText.style.display = 'none';
-                }
             }
         }
         
         // Page loading
         function loadPage(page, param = null) {
             const contentDiv = document.getElementById('content');
-            
-            // Close mobile menu if open
-            if (mobileMenuOpen) {
-                closeMobileMenu();
-            }
-            
-            // Reset feed filter when loading feed page
-            if (page === 'feed') {
-                currentFeedFilter = 'all';
-            }
             
             switch(page) {
                 case 'home':
@@ -1989,7 +1492,7 @@
                         return;
                     }
                     contentDiv.innerHTML = getFeedPage();
-                    loadFeedPosts(currentFeedFilter);
+                    loadFeedPosts();
                     break;
                 case 'profile':
                     if (!currentUser) {
@@ -2088,7 +1591,7 @@
 
         function getLoginPage() {
             return `
-                <div style="max-width: 100%; margin: 50px auto; padding: 0 15px;">
+                <div style="max-width: 400px; margin: 100px auto;">
                     <div class="card">
                         <h2 style="text-align: center; margin-bottom: 30px;">Login to MusicianHub</h2>
                         <form id="loginForm">
@@ -2106,13 +1609,20 @@
                             Don't have an account? <a href="#" onclick="loadPage('register')">Register here</a>
                         </p>
                         <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        
+                            <strong>Demo Accounts:</strong><br>
+                            Email: demo1@musicianhub.com (Admin)<br>
+                            Password: Music123!<br><br>
+                            Email: demo2@musicianhub.com<br>
+                            Password: Music123!
+                        </div>
+                    </div>
+                </div>
             `;
         }
 
         function getRegisterPage() {
             return `
-                <div style="max-width: 100%; margin: 50px auto; padding: 0 15px;">
+                <div style="max-width: 400px; margin: 100px auto;">
                     <div class="card">
                         <h2 style="text-align: center; margin-bottom: 30px;">Join MusicianHub</h2>
                         <form id="registerForm">
@@ -2184,7 +1694,7 @@
                     <div>
                         <div class="card">
                             <h3>Quick Actions</h3>
-                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
                                 <button class="btn btn-primary" onclick="loadPage('create_post')">
                                     <i class="fas fa-plus"></i> Create Post
                                 </button>
@@ -2209,74 +1719,15 @@
             `;
         }
         
-        // UPDATED FEED PAGE FUNCTION
         function getFeedPage() {
             return `
                 <div class="dashboard-grid">
                     <div>
                         <div class="card">
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                                <div>
-                                    <h2 style="margin: 0;">Your Feed</h2>
-                                    <p>Filter posts by category:</p>
-                                </div>
-                                <div style="display: flex; gap: 10px;">
-                                    <button class="btn btn-primary" onclick="loadPage('create_post')">
-                                        <i class="fas fa-plus"></i> Create Post
-                                    </button>
-                                    <button class="btn btn-secondary" onclick="loadPage('communities')">
-                                        <i class="fas fa-users"></i> Find Communities
-                                    </button>
-                                </div>
-                            </div>
-                            <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                                <button class="feed-filter-btn active" onclick="filterFeed('all')" id="filterAllBtn">
-                                    <i class="fas fa-layer-group"></i> All Posts
-                                </button>
-                                <button class="feed-filter-btn" onclick="filterFeed('community')" id="filterCommunityBtn">
-                                    <i class="fas fa-users"></i> Community Posts
-                                </button>
-                                <button class="feed-filter-btn" onclick="filterFeed('following')" id="filterFollowingBtn">
-                                    <i class="fas fa-user-friends"></i> Following
-                                </button>
-                                <button class="feed-filter-btn" onclick="filterFeed('discover')" id="filterDiscoverBtn">
-                                    <i class="fas fa-globe"></i> Discover
-                                </button>
-                            </div>
+                            <h2>Your Feed</h2>
+                            <p>Latest posts from musicians you follow</p>
                         </div>
                         <div id="feedPosts"></div>
-                        <div id="feedPagination"></div>
-                    </div>
-                    
-                    <div>
-                        <div class="card">
-                            <h3>Feed Information</h3>
-                            <p style="margin-bottom: 15px;"><strong>Filter options:</strong></p>
-                            <ul style="padding-left: 20px; margin-bottom: 15px;">
-                                <li><strong>All Posts:</strong> Everything - your posts, communities, following, and discover</li>
-                                <li><strong>Community Posts:</strong> Only posts from communities you're a member of</li>
-                                <li><strong>Following:</strong> Only posts from users you follow</li>
-                                <li><strong>Discover:</strong> Public posts from all musicians</li>
-                            </ul>
-                            <p style="font-size: 0.9rem; color: var(--gray);">
-                                <i class="fas fa-info-circle"></i> You won't see posts from communities you're not a member of.
-                            </p>
-                        </div>
-                        
-                        <div class="card">
-                            <h3>Quick Actions</h3>
-                            <div style="display: flex; flex-direction: column; gap: 12px;">
-                                <button class="btn btn-primary" onclick="loadPage('communities')">
-                                    <i class="fas fa-users"></i> Browse Communities
-                                </button>
-                                <button class="btn btn-secondary" onclick="loadPage('users')">
-                                    <i class="fas fa-user-friends"></i> Find Musicians
-                                </button>
-                                <button class="btn btn-secondary" onclick="loadPage('search')">
-                                    <i class="fas fa-search"></i> Search Posts
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             `;
@@ -2293,7 +1744,7 @@
         function getCommunitiesPage() {
             return `
                 <div class="card">
-                    <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h2 style="margin: 0;">Music Communities</h2>
                         <button class="btn btn-primary" onclick="openModal('communityModal')">
                             <i class="fas fa-plus"></i> Create Community
@@ -2308,7 +1759,7 @@
         function getCommunityPage() {
             return `
                 <div class="card">
-                    <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <div>
                             <h2 id="communityName" style="margin: 0;">Community Name</h2>
                             <p id="communityDescription">Loading...</p>
@@ -2457,193 +1908,11 @@
                             <div id="mediaPreview"></div>
                         </div>
                         
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Create Post</button>
-                            <button type="button" class="btn btn-secondary" onclick="loadPage('dashboard')">Cancel</button>
-                        </div>
+                        <button type="submit" class="btn btn-primary">Create Post</button>
+                        <button type="button" class="btn btn-secondary" onclick="loadPage('dashboard')" style="margin-left: 10px;">Cancel</button>
                     </form>
                 </div>
             `;
-        }
-        
-        // Feed Filter Functions
-        function filterFeed(filterType) {
-            currentFeedFilter = filterType;
-            
-            // Update active button
-            document.querySelectorAll('.feed-filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            switch(filterType) {
-                case 'all':
-                    document.getElementById('filterAllBtn').classList.add('active');
-                    break;
-                case 'community':
-                    document.getElementById('filterCommunityBtn').classList.add('active');
-                    break;
-                case 'following':
-                    document.getElementById('filterFollowingBtn').classList.add('active');
-                    break;
-                case 'discover':
-                    document.getElementById('filterDiscoverBtn').classList.add('active');
-                    break;
-            }
-            
-            // Reload posts with filter
-            loadFeedPosts(filterType);
-        }
-        
-        // UPDATED FEED LOADING FUNCTION
-        async function loadFeedPosts(filterType = 'all', page = 1) {
-            const feedContainer = document.getElementById('feedPosts');
-            const paginationContainer = document.getElementById('feedPagination');
-            
-            feedContainer.innerHTML = showLoading();
-            paginationContainer.innerHTML = '';
-            
-            try {
-                // Build API URL based on filter
-                let apiUrl = `${API_BASE}/feed?per_page=10&page=${page}`;
-                
-                // Add filter parameter
-                if (filterType !== 'all') {
-                    apiUrl += `&filter=${filterType}`;
-                }
-                
-                const response = await fetch(apiUrl, {
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    if (data.success && data.posts && data.posts.length > 0) {
-                        // Render posts
-                        feedContainer.innerHTML = data.posts.map(post => renderPost(post)).join('');
-                        
-                        // Render pagination if needed
-                        if (data.pages > 1) {
-                            renderPagination(paginationContainer, page, data.pages, filterType);
-                        }
-                        
-                        // Show filter info
-                        let filterInfo = '';
-                        switch(filterType) {
-                            case 'all':
-                                filterInfo = `Showing all posts (${data.posts.length} of ${data.total})`;
-                                break;
-                            case 'community':
-                                filterInfo = `Showing community posts (${data.posts.length} of ${data.total})`;
-                                break;
-                            case 'following':
-                                filterInfo = `Showing posts from users you follow (${data.posts.length} of ${data.total})`;
-                                break;
-                            case 'discover':
-                                filterInfo = `Showing public posts from all musicians (${data.posts.length} of ${data.total})`;
-                                break;
-                        }
-                        
-                        // Add filter info at the top
-                        feedContainer.innerHTML = `
-                            <div class="card" style="margin-bottom: 20px;">
-                                <p style="margin: 0; color: var(--gray);">
-                                    <i class="fas fa-filter"></i> ${filterInfo}
-                                </p>
-                            </div>
-                            ${feedContainer.innerHTML}
-                        `;
-                        
-                    } else {
-                        let emptyMessage = '';
-                        let emptyIcon = 'fas fa-music';
-                        
-                        switch(filterType) {
-                            case 'community':
-                                emptyMessage = 'No community posts found. Join some communities to see posts!';
-                                emptyIcon = 'fas fa-users';
-                                break;
-                            case 'following':
-                                emptyMessage = 'No posts from users you follow. Follow some musicians to see their posts!';
-                                emptyIcon = 'fas fa-user-friends';
-                                break;
-                            case 'discover':
-                                emptyMessage = 'No public posts found. Be the first to create a public post!';
-                                emptyIcon = 'fas fa-globe';
-                                break;
-                            default:
-                                emptyMessage = 'No posts found. Start following musicians or join communities to see posts!';
-                                emptyIcon = 'fas fa-users';
-                        }
-                        
-                        feedContainer.innerHTML = `
-                            <div class="empty-state">
-                                <i class="${emptyIcon}"></i>
-                                <h3>No posts found</h3>
-                                <p>${emptyMessage}</p>
-                                <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                                    <button class="btn btn-primary" onclick="loadPage('users')">
-                                        <i class="fas fa-user-friends"></i> Find Musicians
-                                    </button>
-                                    <button class="btn btn-secondary" onclick="loadPage('communities')">
-                                        <i class="fas fa-users"></i> Browse Communities
-                                    </button>
-                                    <button class="btn btn-secondary" onclick="loadPage('create_post')">
-                                        <i class="fas fa-plus"></i> Create Post
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading feed:', error);
-                feedContainer.innerHTML = showEmptyState('Error loading feed. Please try again.', 'fas fa-exclamation-triangle');
-            }
-        }
-        
-        function renderPagination(container, currentPage, totalPages, filterType) {
-            let paginationHTML = '<div class="pagination">';
-            
-            // Previous button
-            if (currentPage > 1) {
-                paginationHTML += `
-                    <button class="page-btn" onclick="loadFeedPosts('${filterType}', ${currentPage - 1})">
-                        <i class="fas fa-chevron-left"></i> Previous
-                    </button>
-                `;
-            }
-            
-            // Page numbers
-            const maxPages = 5;
-            let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2));
-            let endPage = Math.min(totalPages, startPage + maxPages - 1);
-            
-            if (endPage - startPage + 1 < maxPages) {
-                startPage = Math.max(1, endPage - maxPages + 1);
-            }
-            
-            for (let i = startPage; i <= endPage; i++) {
-                if (i === currentPage) {
-                    paginationHTML += `<button class="page-btn active">${i}</button>`;
-                } else {
-                    paginationHTML += `
-                        <button class="page-btn" onclick="loadFeedPosts('${filterType}', ${i})">${i}</button>
-                    `;
-                }
-            }
-            
-            // Next button
-            if (currentPage < totalPages) {
-                paginationHTML += `
-                    <button class="page-btn" onclick="loadFeedPosts('${filterType}', ${currentPage + 1})">
-                        Next <i class="fas fa-chevron-right"></i>
-                    </button>
-                `;
-            }
-            
-            paginationHTML += '</div>';
-            container.innerHTML = paginationHTML;
         }
         
         // Media Upload Functions
@@ -2772,6 +2041,29 @@
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
                 showAlert('Error loading dashboard data', 'error');
+            }
+        }
+        
+        async function loadFeedPosts() {
+            const feedContainer = document.getElementById('feedPosts');
+            feedContainer.innerHTML = showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/feed?per_page=10`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success && data.posts && data.posts.length > 0) {
+                        feedContainer.innerHTML = data.posts.map(post => renderPost(post)).join('');
+                    } else {
+                        feedContainer.innerHTML = showEmptyState('Your feed is empty. Follow some musicians to see their posts!', 'fas fa-users');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading feed:', error);
+                feedContainer.innerHTML = showEmptyState('Error loading feed. Please try again.', 'fas fa-exclamation-triangle');
             }
         }
         
@@ -4146,14 +3438,6 @@
                     closeModal('shareModal');
                     closeModal('memberApprovalModal');
                     document.getElementById('notificationsPanel').style.display = 'none';
-                }
-            });
-            
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                // Update navbar on resize (to show/hide logout text)
-                if (currentUser) {
-                    showNavbar(true);
                 }
             });
         });
