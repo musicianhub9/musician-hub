@@ -12,7 +12,11 @@ from sqlalchemy import Enum
 app = Flask(__name__)
 
 # CONFIG
-app.config['SECRET_KEY'] = 'musicianhub-secret-key-2024'
+app.config['SECRET_KEY'] = os.environ.get(
+    'SECRET_KEY',
+    'musicianhub-secret-key-2024'
+)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///musicianhub.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -1473,35 +1477,6 @@ with app.app_context():
 # -------------------------------
 # RUN SERVER
 # -------------------------------
-if __name__ == '__main__':
-    print("=" * 60)
-    print("🎵 MUSICIANHUB SERVER STARTED 🎵")
-    print("=" * 60)
-    print(f"\n🌐 YOUR NETWORK INFORMATION:")
-    print(f"   Local IP Address: {local_ip}")
-    print(f"   Port: 5000")
-    print("\n🔗 ACCESS LINKS:")
-    print(f"   1. This PC:        http://localhost:5000")
-    print(f"   2. Other devices:  http://{local_ip}:5000")
-    print(f"   3. Mobile/Tablet:  http://{local_ip}:5000")
-    print("\n👥 DEMO ACCOUNTS:")
-    print("   Email: demo1@musicianhub.com  Password: Music123! (Admin)")
-    print("   Email: demo2@musicianhub.com  Password: Music123!")
-    print("   Email: demo3@musicianhub.com  Password: Music123!")
-    print("   Email: demo4@musicianhub.com  Password: Music123!")
-    print("   Email: demo5@musicianhub.com  Password: Music123!")
-    print("\n⚙️  NEW COMMUNITY FEATURES:")
-    print("   • Admin-only member approval system")
-    print("   • Primary members (can post)")
-    print("   • Secondary members (can view only)")
-    print("   • Join requests with notifications")
-    print("   • Member status management")
-    print("\n⚠️  IMPORTANT:")
-    print("   • Keep this window open while using the app")
-    print("   • Other devices must be on SAME WiFi network")
-    print("   • Use http://{local_ip}:5000 on other devices")
-    print("=" * 60)
-    print("\nStarting server... (Press Ctrl+C to stop)\n")
-    
-    # Run with external access enabled
-    app.run(debug=True, port=5000, host='0.0.0.0')
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
