@@ -353,11 +353,14 @@ def load_user(user_id):
 # -------------------------------
 @app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route('/health')
+def health():
     return jsonify({
         "status": "ok",
         "message": "MusicianHub backend is running"
     })
-
 
 @app.route('/login-page')
 def login_page():
