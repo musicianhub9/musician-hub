@@ -19,16 +19,25 @@ app.config['SECRET_KEY'] = os.environ.get(
     'musicianhub-secret-key-2024'
 )
 
-# ✅ CHANGED: SQLite database path
-DB_PATH = "/data/musicianhub.db"
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DB_PATH}"
+# ✅ PostgreSQL DATABASE CONFIG
+db_url = os.environ.get("DATABASE_URL")
+
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# ✅ FIXED: SESSION_COOKIE_SECURE - Only enable on Render production
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = True  # ✅ CHANGED: True for production
-app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024 * 1024  # 1 GB
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get("RENDER") == "true"
+
+# ✅ FIXED: Reduce max file size to 100MB (safer for server)
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
+
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'mp3', 'wav', 'mp4', 'mov'}
 
-# ✅ ADDED: Cloudinary configuration
+# ✅ Cloudinary configuration
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
     api_key=os.environ.get("CLOUDINARY_API_KEY"),
@@ -159,8 +168,9 @@ class Post(db.Model):
     comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):
-        user = User.query.get(self.user_id)
-        community = Community.query.get(self.community_id) if self.community_id else None
+        # ✅ OPTIMIZED: Use get instead of query.get inside loops
+        user = db.session.get(User, self.user_id)
+        community = db.session.get(Community, self.community_id) if self.community_id else None
         return {
             'id': self.id,
             'title': self.title,
@@ -206,7 +216,8 @@ class Comment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
-        user = User.query.get(self.user_id)
+        # ✅ OPTIMIZED: Use get instead of query.get
+        user = db.session.get(User, self.user_id)
         return {
             'id': self.id,
             'content': self.content,
@@ -246,7 +257,8 @@ class Community(db.Model):
     members = db.relationship('CommunityMember', backref='community', lazy=True)
     
     def to_dict(self):
-        creator = User.query.get(self.created_by)
+        # ✅ OPTIMIZED: Use get instead of query.get
+        creator = db.session.get(User, self.created_by)
         return {
             'id': self.id,
             'name': self.name,
@@ -266,7 +278,10 @@ class CommunityMember(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     community_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=False)
-    status = db.Column(Enum('pending', 'secondary', 'primary', 'rejected', name='member_status'), default='pending')
+    
+    # ✅ FIXED: Use String instead of Enum for better PostgreSQL compatibility
+    status = db.Column(db.String(20), default='pending')  # 'pending', 'secondary', 'primary', 'rejected'
+    
     requested_at = db.Column(db.DateTime, default=datetime.utcnow)
     approved_at = db.Column(db.DateTime, nullable=True)
     approved_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
@@ -279,8 +294,9 @@ class CommunityMember(db.Model):
     __table_args__ = (db.UniqueConstraint('user_id', 'community_id', name='unique_membership'),)
 
     def to_dict(self):
-        user = User.query.get(self.user_id)
-        approver = User.query.get(self.approved_by) if self.approved_by else None
+        # ✅ OPTIMIZED: Use get instead of query.get
+        user = db.session.get(User, self.user_id)
+        approver = db.session.get(User, self.approved_by) if self.approved_by else None
         return {
             'id': self.id,
             'user_id': self.user_id,
@@ -342,7 +358,10 @@ class CommunityRequestNotification(db.Model):
     community_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    status = db.Column(Enum('pending', 'approved', 'rejected', name='request_status'), default='pending')
+    
+    # ✅ FIXED: Use String instead of Enum
+    status = db.Column(db.String(20), default='pending')  # 'pending', 'approved', 'rejected'
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -354,10 +373,10 @@ class CommunityRequestNotification(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
-# ✅ FIXED: Create database tables automatically
+# ✅ ENSURE DB TABLES CREATE SAFELY
 with app.app_context():
     try:
         db.create_all()
@@ -565,7 +584,7 @@ def posts():
         if not current_user.is_authenticated:
             return jsonify({'success': False, 'message': 'Authentication required'}), 401
         
-        # ✅ CHANGED: Cloudinary upload logic
+        # ✅ Cloudinary upload logic
         media_url = ''
         media_type = request.form.get('post_type', 'text')
         
@@ -1239,8 +1258,9 @@ def get_notifications():
         ).order_by(CommunityRequestNotification.created_at.desc()).all()
         
         for req in requests:
-            user = User.query.get(req.user_id)
-            community = Community.query.get(req.community_id)
+            # ✅ OPTIMIZED: Use get instead of query.get
+            user = db.session.get(User, req.user_id)
+            community = db.session.get(Community, req.community_id)
             
             notifications.append({
                 'id': req.id,
@@ -1348,151 +1368,8 @@ def search():
 
 
 # -------------------------------
-# SEED DATABASE
-# -------------------------------
-def seed_database():
-    # Create demo users
-    demo_users = [
-        {'username': 'guitar_legend', 'email': 'demo1@musicianhub.com', 'password': 'Music123!', 'instrument': 'Guitar'},
-        {'username': 'vocal_virtuoso', 'email': 'demo2@musicianhub.com', 'password': 'Music123!', 'instrument': 'Vocals'},
-        {'username': 'drum_maestro', 'email': 'demo3@musicianhub.com', 'password': 'Music123!', 'instrument': 'Drums'},
-        {'username': 'piano_prodigy', 'email': 'demo4@musicianhub.com', 'password': 'Music123!', 'instrument': 'Piano'},
-        {'username': 'violin_virtuoso', 'email': 'demo5@musicianhub.com', 'password': 'Music123!', 'instrument': 'Violin'}
-    ]
-    
-    users_created = []
-    for user_data in demo_users:
-        if not User.query.filter_by(email=user_data['email']).first():
-            user = User(
-                username=user_data['username'],
-                email=user_data['email'],
-                instrument=user_data['instrument']
-            )
-            user.set_password(user_data['password'])
-            db.session.add(user)
-            users_created.append(user)
-    
-    db.session.commit()
-    
-    # Create communities if they don't exist
-    communities_data = [
-        {'name': 'Guitar Legends', 'description': 'For guitar enthusiasts of all levels', 'icon': 'guitar'},
-        {'name': 'Vocal Harmony', 'description': 'Singers and vocalists community', 'icon': 'microphone'},
-        {'name': 'Rhythm Section', 'description': 'Drummers and bassists unite', 'icon': 'drum'},
-        {'name': 'Orchestra Central', 'description': 'Classical musicians community', 'icon': 'violin'},
-        {'name': 'Electronic Producers', 'description': 'EDM and electronic music producers', 'icon': 'sliders'},
-        {'name': 'Songwriters Circle', 'description': 'For lyricists and composers', 'icon': 'pen'}
-    ]
-    
-    for community_data in communities_data:
-        if not Community.query.filter_by(name=community_data['name']).first():
-            community = Community(
-                name=community_data['name'],
-                description=community_data['description'],
-                icon=community_data['icon'],
-                created_by=1,  # First user is admin
-                member_count=0
-            )
-            db.session.add(community)
-    
-    db.session.commit()
-    
-    # Add creator as primary member to all communities
-    for community in Community.query.all():
-        existing_member = CommunityMember.query.filter_by(
-            user_id=1,
-            community_id=community.id
-        ).first()
-        
-        if not existing_member:
-            member = CommunityMember(
-                user_id=1,
-                community_id=community.id,
-                status='primary',
-                approved_at=datetime.utcnow(),
-                approved_by=1
-            )
-            db.session.add(member)
-            community.member_count += 1
-    
-    db.session.commit()
-    
-    # Create some posts if none exist
-    if Post.query.count() == 0:
-        posts_data = [
-            {'user_id': 1, 'title': 'Welcome to MusicianHub!', 'content': 'Hello everyone! Excited to join this amazing community of musicians.', 'community_id': 1},
-            {'user_id': 2, 'title': 'New Vocal Exercise Routine', 'content': 'Sharing my daily vocal warmup exercises that have helped me improve my range.', 'community_id': 2},
-            {'user_id': 3, 'title': 'Drum Groove Patterns', 'content': 'Working on some funky drum patterns. Let me know what you think!', 'community_id': 3},
-            {'user_id': 4, 'title': 'Piano Improvisation Tips', 'content': 'Tips for beginners learning to improvise on piano.', 'community_id': 4},
-            {'user_id': 5, 'title': 'Violin Practice Techniques', 'content': 'Sharing my practice routine for mastering difficult violin pieces.', 'community_id': 4}
-        ]
-        
-        for post_data in posts_data:
-            post = Post(
-                title=post_data['title'],
-                content=post_data['content'],
-                user_id=post_data['user_id'],
-                community_id=post_data.get('community_id')
-            )
-            db.session.add(post)
-    
-    db.session.commit()
-    
-    # Create some follow relationships
-    if Follow.query.count() == 0:
-        # User 1 follows others
-        follows = [
-            (1, 2), (1, 3), (1, 4), (1, 5),
-            (2, 1), (2, 3),
-            (3, 1), (3, 2),
-            (4, 1), (4, 5),
-            (5, 1), (5, 4)
-        ]
-        
-        for follower_id, following_id in follows:
-            if not Follow.query.filter_by(follower_id=follower_id, following_id=following_id).first():
-                follow = Follow(follower_id=follower_id, following_id=following_id)
-                db.session.add(follow)
-    
-    db.session.commit()
-    
-    print(f"Database seeded. Created {len(users_created)} users.")
-
-
-# -------------------------------
-# INIT DATABASE
-# -------------------------------
-def init_database():
-    """Initialize database with migration support"""
-    try:
-        # Create all tables (already done above, but do it again to ensure)
-        db.create_all()
-        print("✓ Database tables created/updated")
-        
-        # Check if we need to seed data
-        if User.query.count() == 0:
-            seed_database()
-            print("✓ Seeded demo data")
-        else:
-            print("✓ Database already has data")
-            
-    except Exception as e:
-        print(f"Error initializing database: {e}")
-        try:
-            db.drop_all()
-            db.create_all()
-            seed_database()
-            print("✓ Recreated database after error") 
-        except Exception as e2:
-            print(f"✗ Fatal error: {e2}")
-
-
-# -------------------------------
 # RUN SERVER
 # -------------------------------
 if __name__ == "__main__":
-    # Initialize database on startup
-    init_database()
-    
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
