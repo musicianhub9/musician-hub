@@ -1,6 +1,5 @@
 Flask
 Flask-SQLAlchemy
 Flask-Login
-Flask-Cors
-psycopg2-binary
+Werkzeug
 gunicorn
