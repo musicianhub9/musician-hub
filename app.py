@@ -19,7 +19,7 @@ app.config['SECRET_KEY'] = os.environ.get(
     'musicianhub-secret-key-2024'
 )
 
-# ✅ PostgreSQL DATABASE CONFIG
+# ✅ PostgreSQL DATABASE CONFIG for Render
 db_url = os.environ.get("DATABASE_URL")
 
 if db_url and db_url.startswith("postgres://"):
@@ -28,13 +28,12 @@ if db_url and db_url.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ✅ FIXED: SESSION_COOKIE_SECURE - Only enable on Render production
+# ✅ Session cookie settings - secure only on Render
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = os.environ.get("RENDER") == "true"
 
-# ✅ FIXED: Reduce max file size to 100MB (safer for server)
+# ✅ Safe file upload limit
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
-
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'mp3', 'wav', 'mp4', 'mov'}
 
 # ✅ Cloudinary configuration
@@ -61,7 +60,7 @@ def get_local_ip():
 
 local_ip = get_local_ip()
 
-# ✅ FIXED: CORS headers middleware - Allow credentials with specific origins
+# ✅ CORS headers middleware
 @app.after_request
 def add_cors_headers(response):
     origin = request.headers.get('Origin')
@@ -98,8 +97,7 @@ class User(UserMixin, db.Model):
     posts = db.relationship('Post', backref='author', lazy=True, cascade='all, delete-orphan')
     comments = db.relationship('Comment', backref='author', lazy=True)
     
-    # FIXED: Simplified follow relationships
-    # Users that this user is following (people I follow)
+    # Follow relationships
     following_users = db.relationship(
         'Follow',
         foreign_keys='Follow.follower_id',
@@ -107,7 +105,6 @@ class User(UserMixin, db.Model):
         lazy='dynamic'
     )
     
-    # Users that are following this user (my followers)
     follower_users = db.relationship(
         'Follow',
         foreign_keys='Follow.following_id',
@@ -168,7 +165,7 @@ class Post(db.Model):
     comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):
-        # ✅ OPTIMIZED: Use get instead of query.get inside loops
+        # Optimized: Use get instead of query.get
         user = db.session.get(User, self.user_id)
         community = db.session.get(Community, self.community_id) if self.community_id else None
         return {
@@ -216,7 +213,7 @@ class Comment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
-        # ✅ OPTIMIZED: Use get instead of query.get
+        # Optimized: Use get instead of query.get
         user = db.session.get(User, self.user_id)
         return {
             'id': self.id,
@@ -257,7 +254,7 @@ class Community(db.Model):
     members = db.relationship('CommunityMember', backref='community', lazy=True)
     
     def to_dict(self):
-        # ✅ OPTIMIZED: Use get instead of query.get
+        # Optimized: Use get instead of query.get
         creator = db.session.get(User, self.created_by)
         return {
             'id': self.id,
@@ -279,7 +276,7 @@ class CommunityMember(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     community_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=False)
     
-    # ✅ FIXED: Use String instead of Enum for better PostgreSQL compatibility
+    # Use String instead of Enum for better PostgreSQL compatibility
     status = db.Column(db.String(20), default='pending')  # 'pending', 'secondary', 'primary', 'rejected'
     
     requested_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -294,7 +291,7 @@ class CommunityMember(db.Model):
     __table_args__ = (db.UniqueConstraint('user_id', 'community_id', name='unique_membership'),)
 
     def to_dict(self):
-        # ✅ OPTIMIZED: Use get instead of query.get
+        # Optimized: Use get instead of query.get
         user = db.session.get(User, self.user_id)
         approver = db.session.get(User, self.approved_by) if self.approved_by else None
         return {
@@ -319,7 +316,7 @@ class Follow(db.Model):
     following_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # FIXED: Use back_populates instead of backref to avoid naming conflicts
+    # Use back_populates instead of backref to avoid naming conflicts
     follower = db.relationship('User', foreign_keys=[follower_id])
     following = db.relationship('User', foreign_keys=[following_id])
     
@@ -359,7 +356,7 @@ class CommunityRequestNotification(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
-    # ✅ FIXED: Use String instead of Enum
+    # Use String instead of Enum
     status = db.Column(db.String(20), default='pending')  # 'pending', 'approved', 'rejected'
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -376,7 +373,7 @@ def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 
-# ✅ ENSURE DB TABLES CREATE SAFELY
+# ✅ Ensure DB tables create safely
 with app.app_context():
     try:
         db.create_all()
@@ -581,10 +578,11 @@ def posts():
         })
     
     elif request.method == 'POST':
+        # ✅ Check authentication
         if not current_user.is_authenticated:
             return jsonify({'success': False, 'message': 'Authentication required'}), 401
         
-        # ✅ Cloudinary upload logic
+        # Cloudinary upload logic
         media_url = ''
         media_type = request.form.get('post_type', 'text')
         
@@ -1258,7 +1256,7 @@ def get_notifications():
         ).order_by(CommunityRequestNotification.created_at.desc()).all()
         
         for req in requests:
-            # ✅ OPTIMIZED: Use get instead of query.get
+            # Optimized: Use get instead of query.get
             user = db.session.get(User, req.user_id)
             community = db.session.get(Community, req.community_id)
             
