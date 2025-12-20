@@ -1,7 +1,8 @@
-Flask
-Flask-SQLAlchemy
-Flask-Login
-Werkzeug
-cloudinary
-psycopg2-binary
-gunicorn
+Flask==3.3.2
+Flask-SQLAlchemy==3.0.6
+Flask-Login==0.6.3
+Werkzeug==3.3.5
+gunicorn==21.2.0
+cloudinary==1.34.0
+psycopg2-binary==2.9.8
+python-dotenv==1.0.0
