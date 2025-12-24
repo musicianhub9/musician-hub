@@ -390,10 +390,13 @@ def load_user(user_id):
 #         print("✓ Database tables created successfully")
 #     except Exception as e:
 #         print(f"✗ Error creating database tables: {e}")
+with app.app_context():
+    db.create_all()
+
 
 
 # -------------------------------
-# ROUTES
+# ROUTES 
 # -------------------------------
 @app.route('/')
 def index():
