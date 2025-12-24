@@ -5,4 +5,4 @@ Werkzeug
 gunicorn
 cloudinary
 psycopg2-binary
-
+python-dotenv
