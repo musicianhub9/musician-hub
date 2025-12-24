@@ -5,45 +5,51 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
 import uuid
-from werkzeug.utils import secure_filename
 import socket
-from sqlalchemy import Enum
 import cloudinary
 import cloudinary.uploader
 
+# ✅ 1. Initialize SQLAlchemy at the TOP
+db = SQLAlchemy()
+
 app = Flask(__name__)
 
-# CONFIG
-app.config['SECRET_KEY'] = os.environ.get(
-    'SECRET_KEY',
-    'musicianhub-secret-key-2024'
-)
+# ✅ 2. POSTGRES DATABASE Configuration
+database_url = os.environ.get("DATABASE_URL")
 
-# ✅ PostgreSQL DATABASE CONFIG for Render
-db_url = os.environ.get("DATABASE_URL")
+if not database_url:
+    raise RuntimeError("DATABASE_URL is missing")
 
-if db_url and db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# ✅ Session cookie settings - secure only on Render
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = os.environ.get("RENDER") == "true"
+# Initialize db with app
+db.init_app(app)
 
-# ✅ Safe file upload limit
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'mp3', 'wav', 'mp4', 'mov'}
-
-# ✅ Cloudinary configuration
+# ✅ 3. Cloudinary Configuration
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
     api_key=os.environ.get("CLOUDINARY_API_KEY"),
     api_secret=os.environ.get("CLOUDINARY_API_SECRET")
 )
 
-db = SQLAlchemy(app)
+# Other Configurations
+app.config['SECRET_KEY'] = os.environ.get(
+    'SECRET_KEY',
+    'musicianhub-secret-key-2024'
+)
+
+# ✅ IMPROVED: Session cookie settings - secure only on Render
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = bool(os.environ.get("RENDER"))  # ✅ Handles "1" or "true"
+
+# Safe file upload limit
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'mp3', 'wav', 'mp4', 'mov'}
+
 login_manager = LoginManager(app)
 login_manager.login_view = 'login_page'
 
@@ -373,14 +379,17 @@ def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 
-# ✅ Ensure DB tables create safely
-with app.app_context():
-    try:
-        db.create_all()
-        print("✓ Database tables created successfully")
-    except Exception as e:
-        print(f"✗ Error creating database tables: {e}")
-        # Try to continue anyway - tables might already exist
+# ✅ ✅ GOOD PRACTICE: db.create_all() is COMMENTED for production
+# 🔴 For first deployment ONLY: Uncomment this block to create tables
+# 🔴 After tables are created, comment it back for production safety
+# 🔴 Later, migrate to Flask-Migrate for proper database migrations
+
+# with app.app_context():
+#     try:
+#         db.create_all()
+#         print("✓ Database tables created successfully")
+#     except Exception as e:
+#         print(f"✗ Error creating database tables: {e}")
 
 
 # -------------------------------
@@ -578,7 +587,6 @@ def posts():
         })
     
     elif request.method == 'POST':
-        # ✅ Check authentication
         if not current_user.is_authenticated:
             return jsonify({'success': False, 'message': 'Authentication required'}), 401
         
@@ -1129,7 +1137,7 @@ def approve_member(community_id, member_id):
     if notification:
         notification.status = 'approved'
     
-    # Update community member count
+    # Update community member count (⚠️ Note: Could increment twice if approved multiple times)
     if member.status in ['primary', 'secondary']:
         community.member_count += 1
     
@@ -1366,7 +1374,7 @@ def search():
 
 
 # -------------------------------
-# RUN SERVER
+# ✅ RUN SERVER
 # -------------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
