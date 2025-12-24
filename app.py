@@ -87,7 +87,7 @@ def allowed_file(filename):
 # MODELS
 # -------------------------------
 class User(UserMixin, db.Model):
-    __tablename__ = 'user'
+    __tablename__ = 'users'  # ✅ CHANGED from 'user' to 'users'
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -161,7 +161,7 @@ class Post(db.Model):
     post_type = db.Column(db.String(50), default='text')
     media_url = db.Column(db.String(500), default='')
     media_type = db.Column(db.String(50), default='')
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
     community_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     likes = db.Column(db.Integer, default=0)
@@ -214,7 +214,7 @@ class Comment(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -251,7 +251,7 @@ class Community(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     description = db.Column(db.Text)
     icon = db.Column(db.String(50), default='users')
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))  # ✅ CHANGED to 'users.id'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     member_count = db.Column(db.Integer, default=0)
     
@@ -279,7 +279,7 @@ class CommunityMember(db.Model):
     __tablename__ = 'community_member'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
     community_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=False)
     
     # Use String instead of Enum for better PostgreSQL compatibility
@@ -287,7 +287,7 @@ class CommunityMember(db.Model):
     
     requested_at = db.Column(db.DateTime, default=datetime.utcnow)
     approved_at = db.Column(db.DateTime, nullable=True)
-    approved_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # ✅ CHANGED to 'users.id'
     
     # Relationships with explicit foreign_keys
     user = db.relationship('User', foreign_keys=[user_id])
@@ -318,8 +318,8 @@ class Follow(db.Model):
     __tablename__ = 'follow'
     
     id = db.Column(db.Integer, primary_key=True)
-    follower_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    following_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
+    following_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Use back_populates instead of backref to avoid naming conflicts
@@ -334,7 +334,7 @@ class PostLike(db.Model):
     __tablename__ = 'post_like'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -346,7 +346,7 @@ class PostShare(db.Model):
     __tablename__ = 'post_share'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -359,8 +359,8 @@ class CommunityRequestNotification(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     community_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
     
     # Use String instead of Enum
     status = db.Column(db.String(20), default='pending')  # 'pending', 'approved', 'rejected'
@@ -379,17 +379,14 @@ def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 
-# ✅ ✅ GOOD PRACTICE: db.create_all() is COMMENTED for production
-# 🔴 For first deployment ONLY: Uncomment this block to create tables
-# 🔴 After tables are created, comment it back for production safety
-# 🔴 Later, migrate to Flask-Migrate for proper database migrations
+# ✅ ✅ Create tables (temporarily uncomment for first deployment)
+with app.app_context():
+    try:
+        db.create_all()
+        print("✓ Database tables created successfully")
+    except Exception as e:
+        print(f"✗ Error creating database tables: {e}")
 
-# with app.app_context():
-#     try:
-#         db.create_all()
-#         print("✓ Database tables created successfully")
-#     except Exception as e:
-#         print(f"✗ Error creating database tables: {e}")
 
 # -------------------------------
 # ROUTES 
