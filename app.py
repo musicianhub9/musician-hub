@@ -8,6 +8,7 @@ import uuid
 import socket
 import cloudinary
 import cloudinary.uploader
+from sqlalchemy import text  # ✅ ADDED: For raw SQL operations
 
 # ✅ 1. Initialize SQLAlchemy at the TOP
 db = SQLAlchemy()
@@ -28,6 +29,20 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize db with app
 db.init_app(app)
+
+# ✅ ADDED: Migration snippet to ensure user_type column exists
+with app.app_context():
+    try:
+        # This will add the missing column if it doesn't exist
+        db.session.execute(text("""
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS user_type VARCHAR(20) DEFAULT 'creator';
+        """))
+        db.session.commit()
+        print("✓ user_type column added (or already exists).")
+    except Exception as e:
+        print("✗ Error adding user_type column:", e)
+        # Continue anyway, as the column might already exist with different properties
 
 # ✅ 3. Cloudinary Configuration
 cloudinary.config(
@@ -1534,7 +1549,7 @@ def get_feed():
     
     posts_data = [post.to_dict() for post in posts.items]
     
-    return jsonify({  # ✅ FIXED: Now properly indented
+    return jsonify({
         'success': True,
         'posts': posts_data,
         'total': posts.total,
