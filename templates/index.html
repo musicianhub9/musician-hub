@@ -1615,7 +1615,7 @@
     </style>
 </head>
 <body>
-    <!-- ✅ FIXED: Network Info Banner -->
+    <!-- Network Info Banner -->
     <div class="network-info" id="networkInfo">
         <i class="fas fa-wifi"></i> 
         Server running at: <span id="serverUrl">Loading...</span>
@@ -1773,6 +1773,19 @@
         </div>
     </div>
 
+    <!-- Modal for messaging -->
+    <div class="modal-overlay" id="messageModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="messageModalTitle">Messages</h2>
+                <button class="modal-close" onclick="closeModal('messageModal')">&times;</button>
+            </div>
+            <div id="messageContent">
+                <!-- Messages will be loaded here -->
+            </div>
+        </div>
+    </div>
+
     <!-- Modal for Community Member Approval -->
     <div class="modal-overlay" id="memberApprovalModal">
         <div class="modal">
@@ -1803,7 +1816,7 @@
             navLinks.classList.toggle('show');
         }
         
-        // ✅ FIXED: Show network info on page load
+        // Show network info on page load
         document.addEventListener('DOMContentLoaded', function() {
             const networkInfo = document.getElementById('networkInfo');
             const serverUrl = document.getElementById('serverUrl');
@@ -1913,13 +1926,22 @@
             navbar.style.display = 'block';
             
             if (isAuthenticated) {
+                // ✅ MODIFIED: Added "Find Musicians" tab
                 navLinks.innerHTML = `
                     <a href="#" onclick="loadPage('dashboard'); closeMobileMenu()"><i class="fas fa-home"></i> Home</a>
                     <a href="#" onclick="loadPage('feed'); closeMobileMenu()"><i class="fas fa-stream"></i> Feed</a>
                     <a href="#" onclick="loadPage('search'); closeMobileMenu()"><i class="fas fa-search"></i> Search</a>
                     <a href="#" onclick="loadPage('communities'); closeMobileMenu()"><i class="fas fa-users"></i> Communities</a>
-                    <a href="#" onclick="loadPage('create_post'); closeMobileMenu()"><i class="fas fa-plus"></i> Create</a>
+                    <a href="#" onclick="loadPage('find_musicians'); closeMobileMenu()"><i class="fas fa-user-friends"></i> Find Musicians</a>
+                    ${currentUser.user_type === 'creator' ? 
+                        `<a href="#" onclick="loadPage('create_post'); closeMobileMenu()"><i class="fas fa-plus"></i> Create</a>` : 
+                        ''
+                    }
                     <a href="#" onclick="loadPage('profile'); closeMobileMenu()"><i class="fas fa-user"></i> Profile</a>
+                    ${currentUser.user_type === 'creator' ? 
+                        `<a href="#" onclick="loadPage('messages'); closeMobileMenu()"><i class="fas fa-envelope"></i> Messages</a>` : 
+                        ''
+                    }
                 `;
                 
                 navActions.innerHTML = `
@@ -1985,6 +2007,14 @@
                 case 'search':
                     contentDiv.innerHTML = getSearchPage();
                     break;
+                case 'find_musicians':
+                    if (!currentUser) {
+                        loadPage('login');
+                        return;
+                    }
+                    contentDiv.innerHTML = getFindMusiciansPage();
+                    loadCreators();
+                    break;
                 case 'communities':
                     if (!currentUser) {
                         loadPage('login');
@@ -2008,6 +2038,12 @@
                         loadPage('login');
                         return;
                     }
+                    // ✅ CHECK: Only creators can access create post
+                    if (currentUser.user_type !== 'creator') {
+                        showAlert('Only creators can create posts', 'error');
+                        loadPage('dashboard');
+                        return;
+                    }
                     contentDiv.innerHTML = getCreatePostPage();
                     break;
                 case 'users':
@@ -2017,6 +2053,20 @@
                     }
                     contentDiv.innerHTML = getUsersPage();
                     loadUsers();
+                    break;
+                case 'messages':
+                    if (!currentUser) {
+                        loadPage('login');
+                        return;
+                    }
+                    // ✅ CHECK: Only creators can access messages
+                    if (currentUser.user_type !== 'creator') {
+                        showAlert('Only creators can send messages', 'error');
+                        loadPage('dashboard');
+                        return;
+                    }
+                    contentDiv.innerHTML = getMessagesPage();
+                    loadMessages();
                     break;
                 default:
                     contentDiv.innerHTML = getHomePage();
@@ -2113,6 +2163,17 @@
                                 <input type="password" class="form-control" id="password" name="password" required placeholder="Create a password">
                             </div>
                             <div class="form-group">
+                                <label for="user_type">I am a:</label>
+                                <div style="display: flex; gap: 10px; margin-top: 5px;">
+                                    <label style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="radio" name="user_type" value="creator" checked> Creator (Can post & message)
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 5px;">
+                                        <input type="radio" name="user_type" value="listener"> Listener (Can follow & like)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label for="instrument">Primary Instrument</label>
                                 <select class="form-control" id="instrument" name="instrument" required>
                                     <option value="">Select your instrument</option>
@@ -2142,7 +2203,7 @@
                     <div>
                         <div class="card">
                             <h3>Welcome, <span id="welcomeUsername">${currentUser?.username || 'User'}</span>! 🎵</h3>
-                            <p>You are successfully logged in to MusicianHub. Start connecting with other musicians!</p>
+                            <p>You are successfully logged in to MusicianHub as a <strong>${currentUser?.user_type || 'user'}</strong>. ${currentUser?.user_type === 'creator' ? 'You can create posts and message other creators.' : 'You can follow creators and like their posts.'}</p>
                             <div class="profile-stats" style="margin-top: 20px;">
                                 <div class="profile-stat">
                                     <div class="stat-number" id="followerCount">0</div>
@@ -2152,40 +2213,55 @@
                                     <div class="stat-number" id="followingCount">0</div>
                                     <div class="stat-label">Following</div>
                                 </div>
-                                <div class="profile-stat">
-                                    <div class="stat-number" id="postCount">0</div>
-                                    <div class="stat-label">Posts</div>
-                                </div>
+                                ${currentUser?.user_type === 'creator' ? 
+                                    `<div class="profile-stat">
+                                        <div class="stat-number" id="postCount">0</div>
+                                        <div class="stat-label">Posts</div>
+                                    </div>` : 
+                                    ''
+                                }
                             </div>
                         </div>
                         
-                        <div class="card">
-                            <h3>Your Recent Posts</h3>
-                            <div id="userPosts"></div>
-                        </div>
+                        ${currentUser?.user_type === 'creator' ? 
+                            `<div class="card">
+                                <h3>Your Recent Posts</h3>
+                                <div id="userPosts"></div>
+                            </div>` : 
+                            ''
+                        }
                     </div>
                     
                     <div>
                         <div class="card">
                             <h3>Quick Actions</h3>
                             <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <button class="btn btn-primary" onclick="loadPage('create_post')">
-                                    <i class="fas fa-plus"></i> Create Post
-                                </button>
+                                ${currentUser?.user_type === 'creator' ? 
+                                    `<button class="btn btn-primary" onclick="loadPage('create_post')">
+                                        <i class="fas fa-plus"></i> Create Post
+                                    </button>` : 
+                                    ''
+                                }
                                 <button class="btn btn-secondary" onclick="loadPage('profile')">
                                     <i class="fas fa-user"></i> View Profile
                                 </button>
                                 <button class="btn btn-secondary" onclick="loadPage('communities')">
                                     <i class="fas fa-users"></i> Browse Communities
                                 </button>
-                                <button class="btn btn-secondary" onclick="loadPage('users')">
+                                <button class="btn btn-secondary" onclick="loadPage('find_musicians')">
                                     <i class="fas fa-user-friends"></i> Find Musicians
                                 </button>
+                                ${currentUser?.user_type === 'creator' ? 
+                                    `<button class="btn btn-secondary" onclick="loadPage('messages')">
+                                        <i class="fas fa-envelope"></i> Messages
+                                    </button>` : 
+                                    ''
+                                }
                             </div>
                         </div>
 
                         <div class="card">
-                            <h3>Suggested Musicians</h3>
+                            <h3>Suggested Creators</h3>
                             <div id="suggestedUsers"></div>
                         </div>
                     </div>
@@ -2198,8 +2274,8 @@
                 <div class="dashboard-grid">
                     <div>
                         <div class="card">
-                            <h2>Your Feed</h2>
-                            <p>Latest posts from musicians you follow</p>
+                            <h2>Music Feed</h2>
+                            <p>Latest posts from all creators</p>
                         </div>
                         <div id="feedPosts"></div>
                     </div>
@@ -2215,14 +2291,38 @@
             `;
         }
         
+        function getFindMusiciansPage() {
+            return `
+                <div class="card">
+                    <h2>Find Creators</h2>
+                    <p>Browse and connect with music creators</p>
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="creatorSearchInput" 
+                               placeholder="Search by username, instrument..." 
+                               onkeyup="debounceSearchCreators()">
+                        <button class="search-button" onclick="searchCreators()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="search-categories" id="creatorFilters">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                <div id="creatorsList"></div>
+            `;
+        }
+        
         function getCommunitiesPage() {
             return `
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                         <h2 style="margin: 0;">Music Communities</h2>
-                        <button class="btn btn-primary" onclick="openModal('communityModal')">
-                            <i class="fas fa-plus"></i> Create Community
-                        </button>
+                        ${currentUser?.user_type === 'creator' ? 
+                            `<button class="btn btn-primary" onclick="openModal('communityModal')">
+                                <i class="fas fa-plus"></i> Create Community
+                            </button>` : 
+                            ''
+                        }
                     </div>
                     <p>Join communities to connect with musicians who share your interests! Admin approval required.</p>
                 </div>
@@ -2264,19 +2364,22 @@
                             <div id="communityPosts"></div>
                         </div>
                         
-                        <div class="card" id="communityPostFormSection">
-                            <h3>Create Post in Community</h3>
-                            <form id="communityPostForm">
-                                <div class="form-group">
-                                    <input type="text" class="form-control" id="communityPostTitle" placeholder="Post title" required>
-                                </div>
-                                <div class="form-group">
-                                    <textarea class="form-control" id="communityPostContent" rows="3" placeholder="Share something with the community..." required></textarea>
-                                </div>
-                                <input type="hidden" id="communityId" name="community_id">
-                                <button type="submit" class="btn btn-primary">Post to Community</button>
-                            </form>
-                        </div>
+                        ${currentUser?.user_type === 'creator' ? 
+                            `<div class="card" id="communityPostFormSection">
+                                <h3>Create Post in Community</h3>
+                                <form id="communityPostForm">
+                                    <div class="form-group">
+                                        <input type="text" class="form-control" id="communityPostTitle" placeholder="Post title" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <textarea class="form-control" id="communityPostContent" rows="3" placeholder="Share something with the community..." required></textarea>
+                                    </div>
+                                    <input type="hidden" id="communityId" name="community_id">
+                                    <button type="submit" class="btn btn-primary">Post to Community</button>
+                                </form>
+                            </div>` : 
+                            ''
+                        }
                     </div>
                     
                     <div>
@@ -2318,25 +2421,30 @@
                 <div class="card">
                     <h2>Search MusicianHub</h2>
                     <div class="search-box">
-                        <input type="text" class="search-input" placeholder="Search for users, posts, or communities..." id="searchInput">
+                        <input type="text" class="search-input" placeholder="Search for creators, posts, or communities..." id="searchInput">
                         <button class="search-button" onclick="performSearch()"><i class="fas fa-search"></i></button>
                     </div>
                     <div class="search-categories">
                         <a href="#" class="search-category active" onclick="setSearchCategory('all')">All</a>
-                        <a href="#" class="search-category" onclick="setSearchCategory('users')">Users</a>
+                        <a href="#" class="search-category" onclick="setSearchCategory('users')">Creators</a>
                         <a href="#" class="search-category" onclick="setSearchCategory('posts')">Posts</a>
                         <a href="#" class="search-category" onclick="setSearchCategory('communities')">Communities</a>
                     </div>
                 </div>
                 <div id="searchResults">
                     <div class="card">
-                        <p>Enter a search term above to find users, posts, or communities</p>
+                        <p>Enter a search term above to find creators, posts, or communities</p>
                     </div>
                 </div>
             `;
         }
 
         function getCreatePostPage() {
+            // ✅ CHECK: Only show to creators
+            if (currentUser?.user_type !== 'creator') {
+                return `<div class="card"><h2>Access Denied</h2><p>Only creators can create posts.</p></div>`;
+            }
+            
             return `
                 <div class="card">
                     <h2>Create New Post</h2>
@@ -2387,6 +2495,31 @@
                             <button type="button" class="btn btn-secondary" onclick="loadPage('dashboard')" style="margin-left: 10px;">Cancel</button>
                         </div>
                     </form>
+                </div>
+            `;
+        }
+        
+        function getMessagesPage() {
+            // ✅ CHECK: Only show to creators
+            if (currentUser?.user_type !== 'creator') {
+                return `<div class="card"><h2>Access Denied</h2><p>Only creators can send messages.</p></div>`;
+            }
+            
+            return `
+                <div class="dashboard-grid">
+                    <div>
+                        <div class="card">
+                            <h2>Messages</h2>
+                            <p>Connect with other creators</p>
+                        </div>
+                        <div id="conversationsList"></div>
+                    </div>
+                    <div>
+                        <div class="card">
+                            <h3>Start New Conversation</h3>
+                            <div id="availableCreators"></div>
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -2469,25 +2602,28 @@
                 // Update stats from currentUser data
                 document.getElementById('followerCount').textContent = currentUser.follower_count || 0;
                 document.getElementById('followingCount').textContent = currentUser.following_count || 0;
-                document.getElementById('postCount').textContent = currentUser.post_count || 0;
                 
-                // Load user posts
-                const postsResponse = await fetch(`${API_BASE}/users/${currentUser.id}/posts?per_page=5`, {
-                    credentials: 'include'
-                });
-                if (postsResponse.ok) {
-                    const data = await postsResponse.json();
-                    const postsContainer = document.getElementById('userPosts');
+                if (currentUser.user_type === 'creator') {
+                    document.getElementById('postCount').textContent = currentUser.post_count || 0;
                     
-                    if (data.success && data.posts && data.posts.length > 0) {
-                        postsContainer.innerHTML = data.posts.map(post => renderPost(post, true)).join('');
-                    } else {
-                        postsContainer.innerHTML = showEmptyState('You haven\'t created any posts yet. <a href="#" onclick="loadPage(\'create_post\')">Create your first post!</a>');
+                    // Load user posts
+                    const postsResponse = await fetch(`${API_BASE}/users/${currentUser.id}/posts?per_page=5`, {
+                        credentials: 'include'
+                    });
+                    if (postsResponse.ok) {
+                        const data = await postsResponse.json();
+                        const postsContainer = document.getElementById('userPosts');
+                        
+                        if (data.success && data.posts && data.posts.length > 0) {
+                            postsContainer.innerHTML = data.posts.map(post => renderPost(post, true)).join('');
+                        } else {
+                            postsContainer.innerHTML = showEmptyState('You haven\'t created any posts yet. <a href="#" onclick="loadPage(\'create_post\')">Create your first post!</a>');
+                        }
                     }
                 }
                 
-                // Load suggested users
-                const usersResponse = await fetch(`${API_BASE}/users?per_page=5`, {
+                // Load suggested creators (not listeners)
+                const usersResponse = await fetch(`${API_BASE}/users/creators?per_page=5`, {
                     credentials: 'include'
                 });
                 if (usersResponse.ok) {
@@ -2495,10 +2631,12 @@
                     const usersContainer = document.getElementById('suggestedUsers');
                     
                     if (data.success && data.users && data.users.length > 0) {
-                        usersContainer.innerHTML = data.users
+                        const filteredUsers = data.users
                             .filter(user => user.id !== currentUser.id)
-                            .slice(0, 3)
-                            .map(user => `
+                            .slice(0, 3);
+                        
+                        if (filteredUsers.length > 0) {
+                            usersContainer.innerHTML = filteredUsers.map(user => `
                                 <div class="user-card" data-user-id="${user.id}">
                                     <div class="user-avatar">${user.username?.charAt(0) || 'U'}</div>
                                     <div class="user-info">
@@ -2510,8 +2648,11 @@
                                     </button>
                                 </div>
                             `).join('');
+                        } else {
+                            usersContainer.innerHTML = showEmptyState('No creators found', 'fas fa-users');
+                        }
                     } else {
-                        usersContainer.innerHTML = showEmptyState('No users found', 'fas fa-users');
+                        usersContainer.innerHTML = showEmptyState('No creators found', 'fas fa-users');
                     }
                 }
             } catch (error) {
@@ -2534,7 +2675,7 @@
                     if (data.success && data.posts && data.posts.length > 0) {
                         feedContainer.innerHTML = data.posts.map(post => renderPost(post)).join('');
                     } else {
-                        feedContainer.innerHTML = showEmptyState('Your feed is empty. Follow some musicians to see their posts!', 'fas fa-users');
+                        feedContainer.innerHTML = showEmptyState('No posts from creators yet.', 'fas fa-users');
                     }
                 }
             } catch (error) {
@@ -2585,6 +2726,12 @@
                 </span>
             ` : '';
             
+            const creatorBadge = post.user_type === 'creator' ? `
+                <span class="status-badge status-secondary" style="margin-left: 5px;">
+                    <i class="fas fa-star"></i> Creator
+                </span>
+            ` : '';
+            
             return `
                 <div class="post" data-post-id="${post.id}">
                     <div class="post-header">
@@ -2593,6 +2740,7 @@
                             <div style="display: flex; align-items: center; flex-wrap: wrap;">
                                 <span class="post-user">${post.username || 'User'}</span>
                                 <span class="post-instrument">${post.user_instrument || ''}</span>
+                                ${creatorBadge}
                                 ${communityBadge}
                             </div>
                             <span class="post-time">${post.time_ago || 'Recently'}</span>
@@ -2627,6 +2775,244 @@
             `;
         }
         
+        // Load creators for Find Musicians page
+        async function loadCreators() {
+            const creatorsContainer = document.getElementById('creatorsList');
+            creatorsContainer.innerHTML = showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/creators?per_page=20`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success && data.users && data.users.length > 0) {
+                        // Load instrument filters
+                        const instruments = [...new Set(data.users.map(u => u.instrument).filter(i => i))];
+                        const filtersContainer = document.getElementById('creatorFilters');
+                        if (filtersContainer) {
+                            filtersContainer.innerHTML = `
+                                <a href="#" class="search-category active" onclick="filterCreatorsByInstrument('')">All</a>
+                                ${instruments.map(instrument => `
+                                    <a href="#" class="search-category" onclick="filterCreatorsByInstrument('${instrument}')">${instrument}</a>
+                                `).join('')}
+                            `;
+                        }
+                        
+                        // Load creators
+                        creatorsContainer.innerHTML = `
+                            <div class="card">
+                                <h3>Creators (${data.total || data.users.length})</h3>
+                                ${data.users.map(user => `
+                                    <div class="user-card" data-user-id="${user.id}">
+                                        <div class="user-avatar">${user.username?.charAt(0) || 'U'}</div>
+                                        <div class="user-info">
+                                            <div class="user-name">${user.username || 'User'} <span class="status-badge status-primary">Creator</span></div>
+                                            <div class="user-instrument">${user.instrument || 'Musician'} • ${user.location || 'Unknown'} • ${user.follower_count || 0} followers</div>
+                                        </div>
+                                        ${currentUser && user.id !== currentUser.id ? 
+                                            `<button class="btn btn-primary follow-btn" onclick="toggleFollow(${user.id})">
+                                                <i class="fas fa-user-plus"></i> <span class="follow-text">Follow</span>
+                                            </button>` : ''
+                                        }
+                                        ${currentUser && currentUser.user_type === 'creator' && user.id !== currentUser.id ? 
+                                            `<button class="btn btn-secondary" onclick="startMessage(${user.id})" style="margin-left: 5px;">
+                                                <i class="fas fa-envelope"></i>
+                                            </button>` : ''
+                                        }
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    } else {
+                        creatorsContainer.innerHTML = showEmptyState('No creators found.', 'fas fa-users');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading creators:', error);
+                creatorsContainer.innerHTML = showEmptyState('Error loading creators.', 'fas fa-exclamation-triangle');
+            }
+        }
+        
+        // Load messages
+        async function loadMessages() {
+            const conversationsContainer = document.getElementById('conversationsList');
+            const availableContainer = document.getElementById('availableCreators');
+            
+            conversationsContainer.innerHTML = showLoading();
+            availableContainer.innerHTML = showLoading();
+            
+            try {
+                // Load conversations
+                const convResponse = await fetch(`${API_BASE}/messages`, {
+                    credentials: 'include'
+                });
+                
+                if (convResponse.ok) {
+                    const data = await convResponse.json();
+                    
+                    if (data.success && data.conversations && data.conversations.length > 0) {
+                        conversationsContainer.innerHTML = `
+                            <div class="card">
+                                <h3>Your Conversations</h3>
+                                ${data.conversations.map(conv => `
+                                    <div class="user-card" data-user-id="${conv.user_id}" onclick="openConversation(${conv.user_id})" style="cursor: pointer;">
+                                        <div class="user-avatar">${conv.username?.charAt(0) || 'U'}</div>
+                                        <div class="user-info">
+                                            <div class="user-name">${conv.username || 'User'}</div>
+                                            <div class="user-instrument">${conv.last_message || 'No messages yet'}</div>
+                                        </div>
+                                        ${conv.unread_count > 0 ? 
+                                            `<span class="notification-count">${conv.unread_count}</span>` : 
+                                            ''
+                                        }
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    } else {
+                        conversationsContainer.innerHTML = showEmptyState('No conversations yet.', 'fas fa-envelope');
+                    }
+                }
+                
+                // Load available creators to message
+                const creatorsResponse = await fetch(`${API_BASE}/users/creators?per_page=10`, {
+                    credentials: 'include'
+                });
+                
+                if (creatorsResponse.ok) {
+                    const data = await creatorsResponse.json();
+                    
+                    if (data.success && data.users && data.users.length > 0) {
+                        // Filter out current user
+                        const availableCreators = data.users.filter(user => user.id !== currentUser.id);
+                        
+                        if (availableCreators.length > 0) {
+                            availableContainer.innerHTML = `
+                                ${availableCreators.map(user => `
+                                    <div class="user-card" data-user-id="${user.id}">
+                                        <div class="user-avatar">${user.username?.charAt(0) || 'U'}</div>
+                                        <div class="user-info">
+                                            <div class="user-name">${user.username || 'User'}</div>
+                                            <div class="user-instrument">${user.instrument || 'Musician'}</div>
+                                        </div>
+                                        <button class="btn btn-primary" onclick="startMessage(${user.id})">
+                                            <i class="fas fa-envelope"></i> Message
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            `;
+                        } else {
+                            availableContainer.innerHTML = '<p>No other creators available.</p>';
+                        }
+                    } else {
+                        availableContainer.innerHTML = '<p>No creators available.</p>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                conversationsContainer.innerHTML = showEmptyState('Error loading messages.', 'fas fa-exclamation-triangle');
+                availableContainer.innerHTML = '<p>Error loading creators.</p>';
+            }
+        }
+        
+        // Open conversation with a user
+        async function openConversation(userId) {
+            document.getElementById('messageModalTitle').textContent = 'Loading...';
+            document.getElementById('messageContent').innerHTML = showLoading();
+            openModal('messageModal');
+            
+            try {
+                const response = await fetch(`${API_BASE}/messages/${userId}`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        document.getElementById('messageModalTitle').textContent = `Messages with ${data.other_user.username}`;
+                        
+                        const messagesHtml = data.messages.map(msg => `
+                            <div style="margin-bottom: 15px; ${msg.is_own ? 'text-align: right;' : 'text-align: left;'}">
+                                <div style="display: inline-block; max-width: 70%; background: ${msg.is_own ? 'var(--primary)' : 'var(--light)'}; color: ${msg.is_own ? 'white' : 'var(--dark)'}; padding: 10px 15px; border-radius: 18px; ${msg.is_own ? 'border-bottom-right-radius: 5px;' : 'border-bottom-left-radius: 5px;'}">
+                                    ${msg.content}
+                                </div>
+                                <div style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">
+                                    ${msg.created_at}
+                                </div>
+                            </div>
+                        `).join('');
+                        
+                        document.getElementById('messageContent').innerHTML = `
+                            <div style="max-height: 400px; overflow-y: auto; margin-bottom: 20px; padding: 10px;">
+                                ${messagesHtml}
+                            </div>
+                            <div class="comment-form">
+                                <input type="text" class="comment-input" id="newMessageInput" placeholder="Type a message..." onkeypress="if(event.keyCode===13) sendMessage(${userId})">
+                                <button class="comment-submit" onclick="sendMessage(${userId})">Send</button>
+                            </div>
+                        `;
+                        
+                        // Scroll to bottom
+                        const messageContainer = document.querySelector('#messageContent div');
+                        if (messageContainer) {
+                            messageContainer.scrollTop = messageContainer.scrollHeight;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading conversation:', error);
+                document.getElementById('messageContent').innerHTML = '<p>Error loading conversation.</p>';
+            }
+        }
+        
+        // Send a message
+        async function sendMessage(receiverId) {
+            const input = document.getElementById('newMessageInput');
+            const content = input.value.trim();
+            
+            if (!content) {
+                showAlert('Please enter a message', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        receiver_id: receiverId,
+                        content: content
+                    }),
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        input.value = '';
+                        // Reload the conversation
+                        openConversation(receiverId);
+                        showAlert('Message sent!', 'success');
+                    } else {
+                        showAlert(data.message || 'Error sending message', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showAlert('Error sending message', 'error');
+            }
+        }
+        
+        // Start a new message
+        function startMessage(userId) {
+            openConversation(userId);
+        }
+        
         async function loadUserProfile(userId) {
             const profileContainer = document.getElementById('profileContent');
             
@@ -2645,7 +3031,7 @@
                             <div class="profile-header">
                                 <div class="profile-avatar">${user.username?.charAt(0) || 'U'}</div>
                                 <div class="profile-info">
-                                    <h1>${user.username || 'User'}</h1>
+                                    <h1>${user.username || 'User'} <span class="status-badge ${user.user_type === 'creator' ? 'status-primary' : 'status-secondary'}">${user.user_type}</span></h1>
                                     <p>${user.instrument || 'Musician'} • Member since ${user.created_at || '2024'}</p>
                                     <div class="profile-stats">
                                         <div class="profile-stat">
@@ -2656,10 +3042,13 @@
                                             <div class="stat-number">${user.following_count || 0}</div>
                                             <div class="stat-label">Following</div>
                                         </div>
-                                        <div class="profile-stat">
-                                            <div class="stat-number">${user.post_count || 0}</div>
-                                            <div class="stat-label">Posts</div>
-                                        </div>
+                                        ${user.user_type === 'creator' ? 
+                                            `<div class="profile-stat">
+                                                <div class="stat-number">${user.post_count || 0}</div>
+                                                <div class="stat-label">Posts</div>
+                                            </div>` : 
+                                            ''
+                                        }
                                     </div>
                                     ${isOwnProfile ? 
                                         `<button class="btn btn-primary" onclick="openEditProfileModal()">
@@ -2669,27 +3058,39 @@
                                             <i class="fas fa-user-plus"></i> Follow
                                         </button>`
                                     }
+                                    ${!isOwnProfile && currentUser?.user_type === 'creator' && user.user_type === 'creator' ? 
+                                        `<button class="btn btn-secondary" onclick="startMessage(${user.id})" style="margin-left: 10px;">
+                                            <i class="fas fa-envelope"></i> Message
+                                        </button>` : 
+                                        ''
+                                    }
                                 </div>
                             </div>
                             
                             <div class="card">
                                 <h3>About</h3>
-                                <p>${user.bio || 'Welcome to my MusicianHub profile! I\'m passionate about music and love connecting with other musicians.'}</p>
+                                <p>${user.bio || 'Welcome to my MusicianHub profile!'}</p>
                                 <div style="margin-top: 15px;">
+                                    <strong>Type:</strong> ${user.user_type || 'user'}<br>
                                     <strong>Instrument:</strong> ${user.instrument || 'Not specified'}<br>
                                     <strong>Joined:</strong> ${user.created_at || '2024'}<br>
                                     <strong>Location:</strong> ${user.location || 'Not specified'}
                                 </div>
                             </div>
 
-                            <div class="card">
-                                <h3>Posts</h3>
-                                <div id="profilePosts"></div>
-                            </div>
+                            ${user.user_type === 'creator' ? 
+                                `<div class="card">
+                                    <h3>Posts</h3>
+                                    <div id="profilePosts"></div>
+                                </div>` : 
+                                ''
+                            }
                         `;
                         
-                        // Load user's posts
-                        loadUserPosts(userId);
+                        // Load user's posts if they're a creator
+                        if (user.user_type === 'creator') {
+                            loadUserPosts(userId);
+                        }
                     }
                 }
             } catch (error) {
@@ -2801,7 +3202,9 @@
                                     <i class="fas fa-sign-out-alt"></i> Leave
                                 </button>
                             `;
-                            postFormSection.style.display = 'block';
+                            if (currentUser.user_type === 'creator') {
+                                postFormSection.style.display = 'block';
+                            }
                         } else if (currentCommunity.user_status === 'secondary') {
                             actionButtons.innerHTML = `
                                 <button class="btn btn-secondary" onclick="loadCommunityMembers(${communityId})">
@@ -3009,10 +3412,10 @@
                                     <div class="user-card" data-user-id="${user.id}">
                                         <div class="user-avatar">${user.username?.charAt(0) || 'U'}</div>
                                         <div class="user-info">
-                                            <div class="user-name">${user.username || 'User'}</div>
+                                            <div class="user-name">${user.username || 'User'} <span class="status-badge ${user.user_type === 'creator' ? 'status-primary' : 'status-secondary'}">${user.user_type}</span></div>
                                             <div class="user-instrument">${user.instrument || 'Musician'} • ${user.follower_count || 0} followers</div>
                                         </div>
-                                        ${currentUser && user.id !== currentUser.id ? 
+                                        ${currentUser && user.id !== currentUser.id && user.user_type === 'creator' ? 
                                             `<button class="btn btn-primary follow-btn" onclick="toggleFollow(${user.id})">
                                                 <i class="fas fa-user-plus"></i> <span class="follow-text">Follow</span>
                                             </button>` : ''
@@ -3483,7 +3886,7 @@
                         }
                         
                         // Update post count
-                        if (currentUser) {
+                        if (currentUser && currentUser.user_type === 'creator') {
                             currentUser.post_count = Math.max(0, (currentUser.post_count || 0) - 1);
                             document.getElementById('postCount').textContent = currentUser.post_count;
                         }
@@ -3495,6 +3898,7 @@
             }
         }
         
+        // Follow function with listener restriction
         async function toggleFollow(userId) {
             if (!currentUser) {
                 showAlert('Please login to follow users', 'error');
@@ -3539,7 +3943,9 @@
                             followerCountEl.textContent = data.follower_count;
                         }
                         
-                        showAlert(data.followed ? 'You are now following this user!' : 'You unfollowed this user.', 'success');
+                        showAlert(data.followed ? 'You are now following this creator!' : 'You unfollowed this creator.', 'success');
+                    } else {
+                        showAlert(data.message || 'Cannot follow this user', 'error');
                     }
                 }
             } catch (error) {
@@ -3557,6 +3963,15 @@
             event.target.classList.add('active');
             
             // Reload users with filter
+            showAlert(`Filtering by: ${instrument || 'All instruments'}`, 'success');
+        }
+        
+        function filterCreatorsByInstrument(instrument) {
+            document.querySelectorAll('#creatorFilters .search-category').forEach(el => {
+                el.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
             showAlert(`Filtering by: ${instrument || 'All instruments'}`, 'success');
         }
         
@@ -3587,6 +4002,21 @@
             if (query) {
                 showAlert(`Searching users for: ${query}`, 'success');
                 // Implement actual user search here
+            }
+        }
+        
+        function debounceSearchCreators() {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => {
+                searchCreators();
+            }, 500);
+        }
+        
+        function searchCreators() {
+            const query = document.getElementById('creatorSearchInput')?.value;
+            if (query) {
+                showAlert(`Searching creators for: ${query}`, 'success');
+                // Implement actual creator search here
             }
         }
         
@@ -3649,11 +4079,13 @@
             if (registerForm) {
                 registerForm.onsubmit = async (e) => {
                     e.preventDefault();
+                    const userType = document.querySelector('input[name="user_type"]:checked')?.value || 'creator';
                     const formData = {
                         username: document.getElementById('username').value,
                         email: document.getElementById('email').value,
                         password: document.getElementById('password').value,
-                        instrument: document.getElementById('instrument').value
+                        instrument: document.getElementById('instrument').value,
+                        user_type: userType  // ✅ ADDED
                     };
                     
                     try {
@@ -3690,6 +4122,12 @@
                     if (!currentUser) {
                         showAlert('Please login to create posts', 'error');
                         loadPage('login');
+                        return;
+                    }
+                    
+                    // ✅ CHECK: Only creators can post
+                    if (currentUser.user_type !== 'creator') {
+                        showAlert('Only creators can create posts', 'error');
                         return;
                     }
                     
@@ -3733,6 +4171,12 @@
                     if (!currentUser) {
                         showAlert('Please login to create communities', 'error');
                         loadPage('login');
+                        return;
+                    }
+                    
+                    // ✅ CHECK: Only creators can create communities
+                    if (currentUser.user_type !== 'creator') {
+                        showAlert('Only creators can create communities', 'error');
                         return;
                     }
                     
@@ -3833,6 +4277,12 @@
                         return;
                     }
                     
+                    // ✅ CHECK: Only creators can post
+                    if (currentUser.user_type !== 'creator') {
+                        showAlert('Only creators can create posts', 'error');
+                        return;
+                    }
+                    
                     const communityId = document.getElementById('communityId').value;
                     if (!communityId) {
                         showAlert('Community ID not found', 'error');
@@ -3914,6 +4364,7 @@
                     closeModal('communityModal');
                     closeModal('profileModal');
                     closeModal('shareModal');
+                    closeModal('messageModal');
                     closeModal('memberApprovalModal');
                     document.getElementById('notificationsPanel').style.display = 'none';
                     closeMobileMenu();
