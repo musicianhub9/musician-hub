@@ -1194,10 +1194,10 @@ def communities():
             approved_by=current_user.id
         )
         db.session.add(member)
-if member.status in ['primary', 'secondary'] and member.approved_at is None:
-    community.member_count += 1
-db.session.commit()
-return jsonify({'success': True, 'message': 'Community created!', 'community': community.to_dict()})
+        community.member_count += 1
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Community created!', 'community': community.to_dict()})
 
 
 @app.route('/api/communities/<int:community_id>', methods=['GET', 'OPTIONS'])
@@ -1534,7 +1534,7 @@ def get_feed():
     
     posts_data = [post.to_dict() for post in posts.items]
     
-    return jsonify({
+    return jsonify({  # ✅ FIXED: Now properly indented
         'success': True,
         'posts': posts_data,
         'total': posts.total,
