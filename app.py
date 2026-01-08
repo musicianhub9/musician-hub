@@ -1197,8 +1197,7 @@ def communities():
 if member.status in ['primary', 'secondary'] and member.approved_at is None:
     community.member_count += 1
 db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Community created!', 'community': community.to_dict()})
+return jsonify({'success': True, 'message': 'Community created!', 'community': community.to_dict()})
 
 
 @app.route('/api/communities/<int:community_id>', methods=['GET', 'OPTIONS'])
