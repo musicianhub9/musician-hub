@@ -198,7 +198,7 @@ class Post(db.Model):
             'likes': self.likes,
             'shares': self.shares,
             'comment_count': len(self.comments),
-            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M'),
+            'created_at': self.created_at.strftime('%Y-%m-d %H:%M'),
             'time_ago': self.get_time_ago()
         }
     
@@ -238,7 +238,7 @@ class Comment(db.Model):
             'user_instrument': user.instrument if user else '',
             'user_type': user.user_type if user else 'creator',
             'post_id': self.post_id,
-            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M'),
+            'created_at': self.created_at.strftime('%Y-%m-d %H:%M'),
             'time_ago': self.get_time_ago()
         }
     
@@ -329,8 +329,8 @@ class CommunityMember(db.Model):
             'user_instrument': user.instrument if user else '',
             'user_type': user.user_type if user else 'creator',
             'status': self.status,
-            'requested_at': self.requested_at.strftime('%Y-%m-%d %H:%M'),
-            'approved_at': self.approved_at.strftime('%Y-%m-%d %H:%M') if self.approved_at else None,
+            'requested_at': self.requested_at.strftime('%Y-%m-d %H:%M'),
+            'approved_at': self.approved_at.strftime('%Y-%m-d %H:%M') if self.approved_at else None,
             'approved_by': self.approved_by,
             'approver_name': approver.username if approver else None
         }
@@ -794,11 +794,6 @@ def delete_post(post_id):
     if post.user_id != current_user.id:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 403
     
-    # Delete associated likes, shares, and comments
-    PostLike.query.filter_by(post_id=post_id).delete()
-    PostShare.query.filter_by(post_id=post_id).delete()
-    Comment.query.filter_by(post_id=post_id).delete()
-    
     db.session.delete(post)
     db.session.commit()
     
@@ -840,7 +835,7 @@ def messages():
                     'username': user.username,
                     'user_instrument': user.instrument,
                     'last_message': last_message.content if last_message else '',
-                    'last_message_time': last_message.created_at.strftime('%Y-%m-%d %H:%M') if last_message else '',
+                    'last_message_time': last_message.created_at.strftime('%Y-%m-d %H:%M') if last_message else '',
                     'unread_count': unread_count
                 })
         
@@ -922,7 +917,7 @@ def get_messages_with_user(user_id):
             'sender_id': msg.sender_id,
             'receiver_id': msg.receiver_id,
             'content': msg.content,
-            'created_at': msg.created_at.strftime('%Y-%m-%d %H:%M'),
+            'created_at': msg.created_at.strftime('%Y-%m-d %H:%M'),
             'is_read': msg.is_read,
             'is_own': msg.sender_id == current_user.id
         })
@@ -1515,7 +1510,7 @@ def get_notifications():
                 'username': user.username if user else 'Unknown',
                 'user_instrument': user.instrument if user else '',
                 'message': f'{user.username if user else "User"} wants to join {community.name if community else "community"}',
-                'created_at': req.created_at.strftime('%Y-%m-%d %H:%M'),
+                'created_at': req.created_at.strftime('%Y-%m-d %H:%M'),
                 'time_ago': get_time_ago(req.created_at),
                 'status': req.status
             })
@@ -1578,6 +1573,9 @@ def search():
     type_filter = request.args.get('type', 'all')
     instrument = request.args.get('instrument', '')
     location = request.args.get('location', '')
+    
+    if not query and not instrument and not location:
+        return jsonify({'success': False, 'message': 'Search criteria required'}), 400
     
     results = {}
     
@@ -1665,12 +1663,6 @@ def search():
         
         priority_communities = starts_with + contains
         results['communities'] = [community.to_dict() for community in priority_communities[:10]]
-    
-    # If no query but filters are provided, return all results
-    if not query and (instrument or location or type_filter != 'all'):
-        if not results:
-            # Return default empty results
-            results = {'users': [], 'posts': [], 'communities': []}
     
     return jsonify({'success': True, 'results': results})
 
