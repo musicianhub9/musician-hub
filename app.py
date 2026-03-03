@@ -1,5 +1,4 @@
-
-from flask import Flask, render_template, request, jsonify, make_response, abort
+from flask import Flask, render_template, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -19,8 +18,7 @@ app = Flask(__name__)
 database_url = os.environ.get("DATABASE_URL")
 
 if not database_url:
-    print("WARNING: DATABASE_URL is missing")
-    database_url = "sqlite:///local.db"  # fallback database
+    raise RuntimeError("DATABASE_URL is missing")
 
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
@@ -99,7 +97,7 @@ class User(UserMixin, db.Model):
     bio = db.Column(db.Text, default='')
     location = db.Column(db.String(100), default='')
     profile_picture = db.Column(db.String(200), default='')
-    user_type = db.Column(db.String(20), default='creator')  # ✅ CHANGE #2: user_type with default 'creator'
+    user_type = db.Column(db.String(20), default='creator')  # ✅ ADDED: 'creator' or 'listener'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -262,8 +260,13 @@ class Message(db.Model):  # ✅ ADDED: Messaging model
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_read = db.Column(db.Boolean, default=False)
     
-    # ✅ CHANGE #1: REMOVED CHECK constraint for PostgreSQL compatibility
-    # No __table_args__ with CHECK constraints
+    # Ensure both sender and receiver are creators
+    __table_args__ = (
+        db.CheckConstraint('''
+            EXISTS (SELECT 1 FROM users WHERE id = sender_id AND user_type = 'creator') AND
+            EXISTS (SELECT 1 FROM users WHERE id = receiver_id AND user_type = 'creator')
+        ''', name='check_both_creators'),
+    )
 
 
 class Community(db.Model):
@@ -448,7 +451,7 @@ def register():
         email = data.get('email')
         password = data.get('password')
         instrument = data.get('instrument', '')
-        user_type = data.get('user_type', 'listener')  # ✅ CHANGE #3: Default to 'listener' instead of 'creator'
+        user_type = data.get('user_type', 'creator')  # ✅ ADDED
         
         if not all([username, email, password, user_type]):  # ✅ MODIFIED
             return jsonify({'success': False, 'message': 'Missing required fields'}), 400
@@ -619,9 +622,9 @@ def posts():
         if not current_user.is_authenticated:
             return jsonify({'success': False, 'message': 'Authentication required'}), 401
         
-        # ✅ CHANGE #4: Only creators can post
+        # ✅ CHECK: Only creators can post
         if current_user.user_type != 'creator':
-            abort(403)
+            return jsonify({'success': False, 'message': 'Only creators can create posts'}), 403
         
         # Cloudinary upload logic
         media_url = ''
@@ -844,9 +847,9 @@ def messages():
         })
     
     elif request.method == 'POST':
-        # ✅ CHANGE #1: Added route-level check for messaging
+        # ✅ CHECK: Only creators can send messages
         if current_user.user_type != 'creator':
-            abort(403)
+            return jsonify({'success': False, 'message': 'Only creators can send messages'}), 403
         
         data = request.get_json() if request.is_json else request.form.to_dict()
         receiver_id = data.get('receiver_id')
@@ -855,10 +858,10 @@ def messages():
         if not receiver_id or not content:
             return jsonify({'success': False, 'message': 'Receiver ID and content are required'}), 400
         
-        # ✅ CHANGE #1: Receiver must be a creator
+        # ✅ CHECK: Receiver must be a creator
         receiver = User.query.get(receiver_id)
         if not receiver or receiver.user_type != 'creator':
-            abort(403)
+            return jsonify({'success': False, 'message': 'Can only message other creators'}), 403
         
         message = Message(
             sender_id=current_user.id,
@@ -882,10 +885,10 @@ def get_messages_with_user(user_id):
     if request.method == 'OPTIONS':
         return make_response('', 200)
     
-    # ✅ CHANGE #1: Both users must be creators
+    # ✅ CHECK: Both users must be creators
     other_user = User.query.get(user_id)
     if not other_user or other_user.user_type != 'creator' or current_user.user_type != 'creator':
-        abort(403)
+        return jsonify({'success': False, 'message': 'Can only message other creators'}), 403
     
     messages = Message.query.filter(
         ((Message.sender_id == current_user.id) & (Message.receiver_id == user_id)) |
@@ -1019,9 +1022,9 @@ def follow_user(user_id):
     
     user_to_follow = User.query.get_or_404(user_id)
     
-    # ✅ CHANGE #5: Cannot follow listeners
+    # ✅ CHECK: Cannot follow listeners
     if user_to_follow.user_type == 'listener':
-        abort(403)
+        return jsonify({'success': False, 'message': 'Cannot follow listeners'}), 400
     
     existing_follow = Follow.query.filter_by(
         follower_id=current_user.id,
@@ -1148,7 +1151,7 @@ def communities():
         if not current_user.is_authenticated:
             return jsonify({'success': False, 'message': 'Authentication required'}), 401
         
-        # Only creators can create communities
+        # ✅ CHECK: Only creators can create communities
         if current_user.user_type != 'creator':
             return jsonify({'success': False, 'message': 'Only creators can create communities'}), 403
         
@@ -1343,7 +1346,7 @@ def approve_member(community_id, member_id):
     if notification:
         notification.status = 'approved'
     
-    # Update community member count
+    # Update community member count (⚠️ Note: Could increment twice if approved multiple times)
     if member.status in ['primary', 'secondary']:
         community.member_count += 1
     
@@ -1519,8 +1522,19 @@ def get_feed():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     
-    # ✅ CHANGE #6: Use Post.query.join(User).filter(User.user_type == 'creator')
-    posts = Post.query.join(User).filter(User.user_type == 'creator')\
+    # ✅ MODIFIED: Show posts from ALL creators, not just followed ones
+    # Get all creator IDs
+    creator_ids = [user.id for user in User.query.filter_by(user_type='creator').all()]
+    
+    if not creator_ids:
+        return jsonify({
+            'success': True,
+            'posts': [],
+            'total': 0,
+            'pages': 0
+        })
+    
+    posts = Post.query.filter(Post.user_id.in_(creator_ids))\
         .order_by(Post.created_at.desc())\
         .paginate(page=page, per_page=per_page, error_out=False)
     
@@ -1553,7 +1567,7 @@ def search():
     results = {}
     
     if type_filter in ['all', 'users']:
-        # ✅ CHANGE #7: Search creators only (User.user_type == 'creator')
+        # Search creators only
         user_query = User.query.filter_by(user_type='creator')
         
         if query:
@@ -1573,7 +1587,7 @@ def search():
         results['users'] = [user.to_dict() for user in users]
     
     if type_filter in ['all', 'posts']:
-        post_query = Post.query.join(User).filter(User.user_type == 'creator')
+        post_query = Post.query
         
         if query:
             post_query = post_query.filter(
@@ -1600,56 +1614,8 @@ def search():
 
 
 # -------------------------------
-# ✅ FIND MUSICIANS API (CREATORS ONLY)
-# -------------------------------
-@app.route('/api/musicians', methods=['GET', 'OPTIONS'])
-def find_musicians():
-    """Dedicated endpoint for finding musicians (creators only)"""
-    if request.method == 'OPTIONS':
-        return make_response('', 200)
-    
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 20, type=int)
-    search = request.args.get('search', '')
-    instrument = request.args.get('instrument', '')
-    location = request.args.get('location', '')
-    
-    # ✅ CHANGE #7: Ensure only creators are returned
-    query = User.query.filter_by(user_type='creator')
-    
-    if search:
-        query = query.filter(
-            User.username.ilike(f'%{search}%') |
-            User.instrument.ilike(f'%{search}%') |
-            User.location.ilike(f'%{search}%')
-        )
-    
-    if instrument:
-        query = query.filter(User.instrument.ilike(f'%{instrument}%'))
-    
-    if location:
-        query = query.filter(User.location.ilike(f'%{location}%'))
-    
-    # Order by follower count or join date
-    query = query.outerjoin(Follow, Follow.following_id == User.id)\
-                 .group_by(User.id)\
-                 .order_by(db.func.count(Follow.id).desc(), User.created_at.desc())
-    
-    musicians = query.paginate(page=page, per_page=per_page, error_out=False)
-    
-    musicians_data = [user.to_dict() for user in musicians.items]
-    
-    return jsonify({
-        'success': True,
-        'musicians': musicians_data,
-        'total': musicians.total,
-        'pages': musicians.pages,
-        'current_page': musicians.page
-    })
-
-
-# -------------------------------
 # ✅ RUN SERVER
 # -------------------------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
