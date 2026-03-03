@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, jsonify, make_response, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -18,7 +19,8 @@ app = Flask(__name__)
 database_url = os.environ.get("DATABASE_URL")
 
 if not database_url:
-    raise RuntimeError("DATABASE_URL is missing")
+    print("WARNING: DATABASE_URL is missing")
+    database_url = "sqlite:///local.db"  # fallback database
 
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
