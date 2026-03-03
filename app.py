@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, make_response
+from flask import Flask, render_template, request, jsonify, make_response, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -136,9 +136,13 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password, password)
     
     def to_dict(self):
-        # Get actual follow counts
+        # ✅ CHANGE #2: Listeners have no followers
+        if self.user_type == 'creator':
+            follower_count = Follow.query.filter_by(following_id=self.id).count()
+        else:
+            follower_count = 0
+            
         following_count = Follow.query.filter_by(follower_id=self.id).count()
-        follower_count = Follow.query.filter_by(following_id=self.id).count()
         
         return {
             'id': self.id,
@@ -148,7 +152,7 @@ class User(UserMixin, db.Model):
             'bio': self.bio,
             'location': self.location,
             'profile_picture': self.profile_picture,
-            'user_type': self.user_type,  # ✅ ADDED
+            'user_type': self.user_type,
             'created_at': self.created_at.strftime('%Y-%m-%d'),
             'post_count': len(self.posts),
             'follower_count': follower_count,
@@ -165,7 +169,7 @@ class Post(db.Model):
     post_type = db.Column(db.String(50), default='text')
     media_url = db.Column(db.String(500), default='')
     media_type = db.Column(db.String(50), default='')
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     community_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     likes = db.Column(db.Integer, default=0)
@@ -188,7 +192,7 @@ class Post(db.Model):
             'user_id': self.user_id,
             'username': user.username if user else 'Unknown',
             'user_instrument': user.instrument if user else '',
-            'user_type': user.user_type if user else 'creator',  # ✅ ADDED
+            'user_type': user.user_type if user else 'creator',
             'community_id': self.community_id,
             'community_name': community.name if community else None,
             'likes': self.likes,
@@ -219,7 +223,7 @@ class Comment(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -232,7 +236,7 @@ class Comment(db.Model):
             'user_id': self.user_id,
             'username': user.username if user else 'Unknown',
             'user_instrument': user.instrument if user else '',
-            'user_type': user.user_type if user else 'creator',  # ✅ ADDED
+            'user_type': user.user_type if user else 'creator',
             'post_id': self.post_id,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M'),
             'time_ago': self.get_time_ago()
@@ -250,7 +254,7 @@ class Comment(db.Model):
         return 'Just now'
 
 
-class Message(db.Model):  # ✅ ADDED: Messaging model
+class Message(db.Model):
     __tablename__ = 'message'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -259,14 +263,6 @@ class Message(db.Model):  # ✅ ADDED: Messaging model
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_read = db.Column(db.Boolean, default=False)
-    
-    # Ensure both sender and receiver are creators
-    __table_args__ = (
-        db.CheckConstraint('''
-            EXISTS (SELECT 1 FROM users WHERE id = sender_id AND user_type = 'creator') AND
-            EXISTS (SELECT 1 FROM users WHERE id = receiver_id AND user_type = 'creator')
-        ''', name='check_both_creators'),
-    )
 
 
 class Community(db.Model):
@@ -276,7 +272,7 @@ class Community(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     description = db.Column(db.Text)
     icon = db.Column(db.String(50), default='users')
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))  # ✅ CHANGED to 'users.id'
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     member_count = db.Column(db.Integer, default=0)
     
@@ -304,7 +300,7 @@ class CommunityMember(db.Model):
     __tablename__ = 'community_member'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     community_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=False)
     
     # Use String instead of Enum for better PostgreSQL compatibility
@@ -312,7 +308,7 @@ class CommunityMember(db.Model):
     
     requested_at = db.Column(db.DateTime, default=datetime.utcnow)
     approved_at = db.Column(db.DateTime, nullable=True)
-    approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # ✅ CHANGED to 'users.id'
+    approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
     # Relationships with explicit foreign_keys
     user = db.relationship('User', foreign_keys=[user_id])
@@ -331,7 +327,7 @@ class CommunityMember(db.Model):
             'community_id': self.community_id,
             'username': user.username if user else 'Unknown',
             'user_instrument': user.instrument if user else '',
-            'user_type': user.user_type if user else 'creator',  # ✅ ADDED
+            'user_type': user.user_type if user else 'creator',
             'status': self.status,
             'requested_at': self.requested_at.strftime('%Y-%m-%d %H:%M'),
             'approved_at': self.approved_at.strftime('%Y-%m-%d %H:%M') if self.approved_at else None,
@@ -344,8 +340,8 @@ class Follow(db.Model):
     __tablename__ = 'follow'
     
     id = db.Column(db.Integer, primary_key=True)
-    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
-    following_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    following_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Use back_populates instead of backref to avoid naming conflicts
@@ -360,7 +356,7 @@ class PostLike(db.Model):
     __tablename__ = 'post_like'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -372,7 +368,7 @@ class PostShare(db.Model):
     __tablename__ = 'post_share'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -385,8 +381,8 @@ class CommunityRequestNotification(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     community_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
-    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # ✅ CHANGED to 'users.id'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     # Use String instead of Enum
     status = db.Column(db.String(20), default='pending')  # 'pending', 'approved', 'rejected'
@@ -450,13 +446,14 @@ def register():
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
-        instrument = data.get('instrument', '')
-        user_type = data.get('user_type', 'creator')  # ✅ ADDED
+        # ✅ CHANGE #1: Get user_type and conditionally get instrument
+        user_type = data.get('user_type', 'listener')
+        instrument = data.get('instrument', '') if user_type == 'creator' else ''
         
-        if not all([username, email, password, user_type]):  # ✅ MODIFIED
+        if not all([username, email, password]):
             return jsonify({'success': False, 'message': 'Missing required fields'}), 400
         
-        if user_type not in ['creator', 'listener']:  # ✅ ADDED
+        if user_type not in ['creator', 'listener']:
             return jsonify({'success': False, 'message': 'Invalid user type'}), 400
         
         if User.query.filter_by(email=email).first():
@@ -465,7 +462,7 @@ def register():
         if User.query.filter_by(username=username).first():
             return jsonify({'success': False, 'message': 'Username already exists'}), 400
         
-        user = User(username=username, email=email, instrument=instrument, user_type=user_type)  # ✅ MODIFIED
+        user = User(username=username, email=email, instrument=instrument, user_type=user_type)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
@@ -565,7 +562,8 @@ def update_profile():
         if 'bio' in data:
             user.bio = data['bio']
         
-        if 'instrument' in data:
+        # ✅ FIX: Only creators can update instrument
+        if 'instrument' in data and user.user_type == 'creator':
             user.instrument = data['instrument']
         
         if 'location' in data:
@@ -622,9 +620,9 @@ def posts():
         if not current_user.is_authenticated:
             return jsonify({'success': False, 'message': 'Authentication required'}), 401
         
-        # ✅ CHECK: Only creators can post
+        # ✅ CHANGE #4: Only creators can post
         if current_user.user_type != 'creator':
-            return jsonify({'success': False, 'message': 'Only creators can create posts'}), 403
+            abort(403)
         
         # Cloudinary upload logic
         media_url = ''
@@ -796,6 +794,11 @@ def delete_post(post_id):
     if post.user_id != current_user.id:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 403
     
+    # Delete associated likes, shares, and comments
+    PostLike.query.filter_by(post_id=post_id).delete()
+    PostShare.query.filter_by(post_id=post_id).delete()
+    Comment.query.filter_by(post_id=post_id).delete()
+    
     db.session.delete(post)
     db.session.commit()
     
@@ -847,10 +850,7 @@ def messages():
         })
     
     elif request.method == 'POST':
-        # ✅ CHECK: Only creators can send messages
-        if current_user.user_type != 'creator':
-            return jsonify({'success': False, 'message': 'Only creators can send messages'}), 403
-        
+        # ✅ CHANGE #6: Enhanced messaging rules
         data = request.get_json() if request.is_json else request.form.to_dict()
         receiver_id = data.get('receiver_id')
         content = data.get('content')
@@ -858,10 +858,23 @@ def messages():
         if not receiver_id or not content:
             return jsonify({'success': False, 'message': 'Receiver ID and content are required'}), 400
         
-        # ✅ CHECK: Receiver must be a creator
+        # Receiver must be a creator
         receiver = User.query.get(receiver_id)
         if not receiver or receiver.user_type != 'creator':
-            return jsonify({'success': False, 'message': 'Can only message other creators'}), 403
+            abort(403)
+        
+        # ✅ ADDED: Creator restriction - creators can only message creators they follow
+        if current_user.user_type == 'creator':
+            is_following = Follow.query.filter_by(
+                follower_id=current_user.id,
+                following_id=receiver_id
+            ).first()
+
+            if not is_following:
+                return jsonify({
+                    'success': False, 
+                    'message': 'You must follow this creator to message them'
+                }), 403
         
         message = Message(
             sender_id=current_user.id,
@@ -885,10 +898,10 @@ def get_messages_with_user(user_id):
     if request.method == 'OPTIONS':
         return make_response('', 200)
     
-    # ✅ CHECK: Both users must be creators
+    # Both users must be creators
     other_user = User.query.get(user_id)
     if not other_user or other_user.user_type != 'creator' or current_user.user_type != 'creator':
-        return jsonify({'success': False, 'message': 'Can only message other creators'}), 403
+        abort(403)
     
     messages = Message.query.filter(
         ((Message.sender_id == current_user.id) & (Message.receiver_id == user_id)) |
@@ -934,7 +947,7 @@ def get_users():
     search = request.args.get('search', '')
     instrument = request.args.get('instrument', '')
     location = request.args.get('location', '')
-    user_type = request.args.get('user_type', '')  # ✅ ADDED: Filter by user type
+    user_type = request.args.get('user_type', '')
     
     query = User.query
     
@@ -947,7 +960,7 @@ def get_users():
     if location:
         query = query.filter(User.location.ilike(f'%{location}%'))
     
-    if user_type:  # ✅ ADDED: Filter by user type
+    if user_type:
         query = query.filter(User.user_type == user_type)
     
     users = query.order_by(User.created_at.desc()).paginate(
@@ -965,7 +978,7 @@ def get_users():
     })
 
 
-@app.route('/api/users/creators', methods=['GET', 'OPTIONS'])  # ✅ ADDED: Get only creators
+@app.route('/api/users/creators', methods=['GET', 'OPTIONS'])
 def get_creators():
     if request.method == 'OPTIONS':
         return make_response('', 200)
@@ -1022,9 +1035,9 @@ def follow_user(user_id):
     
     user_to_follow = User.query.get_or_404(user_id)
     
-    # ✅ CHECK: Cannot follow listeners
-    if user_to_follow.user_type == 'listener':
-        return jsonify({'success': False, 'message': 'Cannot follow listeners'}), 400
+    # ✅ CHANGE #5: Cannot follow listeners
+    if user_to_follow.user_type != 'creator':
+        return jsonify({'success': False, 'message': 'You can only follow creators'}), 400
     
     existing_follow = Follow.query.filter_by(
         follower_id=current_user.id,
@@ -1043,7 +1056,7 @@ def follow_user(user_id):
     
     # Get updated counts
     following_count = Follow.query.filter_by(follower_id=current_user.id).count()
-    follower_count = Follow.query.filter_by(following_id=user_id).count()
+    follower_count = Follow.query.filter_by(following_id=user_id).count() if user_to_follow.user_type == 'creator' else 0
     
     return jsonify({
         'success': True,
@@ -1079,6 +1092,15 @@ def get_user_posts(user_id):
 def get_user_followers(user_id):
     if request.method == 'OPTIONS':
         return make_response('', 200)
+    
+    user = User.query.get_or_404(user_id)
+    # ✅ CHANGE: Listeners have no followers
+    if user.user_type != 'creator':
+        return jsonify({
+            'success': True,
+            'followers': [],
+            'count': 0
+        })
     
     followers = Follow.query.filter_by(following_id=user_id).all()
     followers_data = []
@@ -1128,10 +1150,14 @@ def communities():
         per_page = request.args.get('per_page', 12, type=int)
         search = request.args.get('search', '')
         
+        # ✅ CHANGE #4: Listeners can view communities but not join
         query = Community.query
         
         if search:
-            query = query.filter(Community.name.ilike(f'%{search}%') | Community.description.ilike(f'%{search}%'))
+            query = query.filter(
+                Community.name.ilike(f'%{search}%') | 
+                Community.description.ilike(f'%{search}%')
+            )
         
         communities = query.order_by(Community.member_count.desc()).paginate(
             page=page, per_page=per_page, error_out=False
@@ -1153,7 +1179,7 @@ def communities():
         
         # ✅ CHECK: Only creators can create communities
         if current_user.user_type != 'creator':
-            return jsonify({'success': False, 'message': 'Only creators can create communities'}), 403
+            abort(403)
         
         if request.is_json:
             data = request.get_json()
@@ -1248,6 +1274,10 @@ def get_community_members(community_id):
 def join_community(community_id):
     if request.method == 'OPTIONS':
         return make_response('', 200)
+    
+    # ✅ CHANGE #5: Only creators can join communities
+    if current_user.user_type != 'creator':
+        abort(403)
     
     community = Community.query.get_or_404(community_id)
     
@@ -1346,9 +1376,8 @@ def approve_member(community_id, member_id):
     if notification:
         notification.status = 'approved'
     
-    # Update community member count (⚠️ Note: Could increment twice if approved multiple times)
-    if member.status in ['primary', 'secondary']:
-        community.member_count += 1
+    # Update community member count
+    community.member_count += 1
     
     db.session.commit()
     
@@ -1522,19 +1551,8 @@ def get_feed():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     
-    # ✅ MODIFIED: Show posts from ALL creators, not just followed ones
-    # Get all creator IDs
-    creator_ids = [user.id for user in User.query.filter_by(user_type='creator').all()]
-    
-    if not creator_ids:
-        return jsonify({
-            'success': True,
-            'posts': [],
-            'total': 0,
-            'pages': 0
-        })
-    
-    posts = Post.query.filter(Post.user_id.in_(creator_ids))\
+    # ✅ CHANGE #6: Show posts from ALL creators only
+    posts = Post.query.join(User).filter(User.user_type == 'creator')\
         .order_by(Post.created_at.desc())\
         .paginate(page=page, per_page=per_page, error_out=False)
     
@@ -1549,7 +1567,7 @@ def get_feed():
 
 
 # -------------------------------
-# SEARCH API (UNIFIED)
+# SEARCH API (UNIFIED WITH PRIORITY)
 # -------------------------------
 @app.route('/api/search', methods=['GET', 'OPTIONS'])
 def search():
@@ -1561,54 +1579,98 @@ def search():
     instrument = request.args.get('instrument', '')
     location = request.args.get('location', '')
     
-    if not query and not instrument and not location:
-        return jsonify({'success': False, 'message': 'Search criteria required'}), 400
-    
     results = {}
     
+    # ✅ FIXED: Priority search (starts-with first) with proper implementation
     if type_filter in ['all', 'users']:
         # Search creators only
-        user_query = User.query.filter_by(user_type='creator')
+        user_query = User.query.filter(User.user_type == 'creator')
         
         if query:
-            user_query = user_query.filter(
+            # Get all users that match the query
+            all_users = user_query.filter(
                 User.username.ilike(f'%{query}%') |
                 User.email.ilike(f'%{query}%') |
                 User.instrument.ilike(f'%{query}%')
-            )
+            ).all()
+        else:
+            all_users = user_query.all()
         
         if instrument:
-            user_query = user_query.filter(User.instrument.ilike(f'%{instrument}%'))
+            all_users = [u for u in all_users if instrument.lower() in u.instrument.lower()]
         
         if location:
-            user_query = user_query.filter(User.location.ilike(f'%{location}%'))
+            all_users = [u for u in all_users if location.lower() in (u.location or '').lower()]
         
-        users = user_query.limit(20).all()
-        results['users'] = [user.to_dict() for user in users]
+        # Priority sorting: starts-with first
+        starts_with = []
+        contains = []
+        
+        for user in all_users:
+            if query and user.username.lower().startswith(query.lower()):
+                starts_with.append(user)
+            else:
+                contains.append(user)
+        
+        # Combine with priority
+        priority_users = starts_with + contains
+        results['users'] = [user.to_dict() for user in priority_users[:20]]
     
     if type_filter in ['all', 'posts']:
-        post_query = Post.query
+        post_query = Post.query.join(User).filter(User.user_type == 'creator')
         
         if query:
-            post_query = post_query.filter(
+            # Get all posts that match the query
+            all_posts = post_query.filter(
                 Post.title.ilike(f'%{query}%') |
                 Post.content.ilike(f'%{query}%')
-            )
+            ).all()
+        else:
+            all_posts = post_query.all()
         
-        posts = post_query.limit(20).all()
-        results['posts'] = [post.to_dict() for post in posts]
+        # Priority sorting for posts
+        starts_with = []
+        contains = []
+        
+        for post in all_posts:
+            if query and post.title.lower().startswith(query.lower()):
+                starts_with.append(post)
+            else:
+                contains.append(post)
+        
+        priority_posts = starts_with + contains
+        results['posts'] = [post.to_dict() for post in priority_posts[:20]]
     
     if type_filter in ['all', 'communities']:
         community_query = Community.query
         
         if query:
-            community_query = community_query.filter(
+            # Get all communities that match the query
+            all_communities = community_query.filter(
                 Community.name.ilike(f'%{query}%') |
                 Community.description.ilike(f'%{query}%')
-            )
+            ).all()
+        else:
+            all_communities = community_query.all()
         
-        communities = community_query.limit(10).all()
-        results['communities'] = [community.to_dict() for community in communities]
+        # Priority sorting for communities
+        starts_with = []
+        contains = []
+        
+        for community in all_communities:
+            if query and community.name.lower().startswith(query.lower()):
+                starts_with.append(community)
+            else:
+                contains.append(community)
+        
+        priority_communities = starts_with + contains
+        results['communities'] = [community.to_dict() for community in priority_communities[:10]]
+    
+    # If no query but filters are provided, return all results
+    if not query and (instrument or location or type_filter != 'all'):
+        if not results:
+            # Return default empty results
+            results = {'users': [], 'posts': [], 'communities': []}
     
     return jsonify({'success': True, 'results': results})
 
