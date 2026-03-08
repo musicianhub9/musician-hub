@@ -87,7 +87,7 @@ def allowed_file(filename):
 # MODELS
 # -------------------------------
 class User(UserMixin, db.Model):
-    __tablename__ = 'users'  # ✅ CHANGED from 'user' to 'users'
+    __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -97,30 +97,29 @@ class User(UserMixin, db.Model):
     bio = db.Column(db.Text, default='')
     location = db.Column(db.String(100), default='')
     profile_picture = db.Column(db.String(200), default='')
-    user_type = db.Column(db.String(20), default='creator')  # ✅ ADDED: 'creator' or 'listener'
+    user_type = db.Column(db.String(20), default='creator')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # Relationships
     posts = db.relationship('Post', backref='author', lazy=True, cascade='all, delete-orphan')
     comments = db.relationship('Comment', backref='author', lazy=True)
     sent_messages = db.relationship('Message', foreign_keys='Message.sender_id', backref='sender', lazy=True)
     received_messages = db.relationship('Message', foreign_keys='Message.receiver_id', backref='receiver', lazy=True)
-    
-    # Follow relationships
+
+    # ✅ Follow relationships (correct indentation)
     following_users = db.relationship(
-        'Follow',
-        foreign_keys='Follow.follower_id',
-        backref='follower_user',
-        lazy='dynamic'
+        "Follow",
+        foreign_keys="Follow.follower_id",
+        back_populates="follower",
+        lazy="dynamic"
     )
-    
+
     follower_users = db.relationship(
-        'Follow',
-        foreign_keys='Follow.following_id',
-        backref='following_user',
-        lazy='dynamic'
+        "Follow",
+        foreign_keys="Follow.following_id",
+        back_populates="following",
+        lazy="dynamic"
     )
-    
     # Community memberships
     community_memberships = db.relationship(
         'CommunityMember', 
@@ -338,19 +337,27 @@ class CommunityMember(db.Model):
 
 class Follow(db.Model):
     __tablename__ = 'follow'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     following_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Use back_populates instead of backref to avoid naming conflicts
-    follower = db.relationship('User', foreign_keys=[follower_id])
-    following = db.relationship('User', foreign_keys=[following_id])
-    
-    # Ensure unique follow relationship
-    __table_args__ = (db.UniqueConstraint('follower_id', 'following_id', name='unique_follow'),)
 
+    follower = db.relationship(
+        "User",
+        foreign_keys=[follower_id],
+        back_populates="following_users"
+    )
+
+    following = db.relationship(
+        "User",
+        foreign_keys=[following_id],
+        back_populates="follower_users"
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint('follower_id', 'following_id', name='unique_follow'),
+    )
 
 class PostLike(db.Model):
     __tablename__ = 'post_like'
