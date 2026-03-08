@@ -430,6 +430,57 @@
             color: white;
         }
 
+        .communities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .community-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 15px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .community-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .community-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .community-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .community-info h3 {
+            margin-bottom: 5px;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .community-members {
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+
         .hero {
             background: var(--gradient);
             color: white;
@@ -920,7 +971,7 @@
             line-height: 1.4;
         }
 
-        /* Status Badges */
+        /* Community Member Status Badges */
         .status-badge {
             padding: 3px 8px;
             border-radius: 12px;
@@ -929,6 +980,12 @@
             text-transform: uppercase;
             margin-left: 8px;
             white-space: nowrap;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
         }
 
         .status-primary {
@@ -941,6 +998,89 @@
             background: #d1ecf1;
             color: #0c5460;
             border: 1px solid #bee5eb;
+        }
+
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Community Management Styles */
+        .community-admin-panel {
+            background: white;
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .member-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--light);
+            border-radius: var(--radius);
+            transition: all 0.3s;
+            flex-wrap: wrap;
+        }
+
+        .member-item:hover {
+            background: var(--light-gray);
+        }
+
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .member-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            flex: 1;
+            text-align: center;
+        }
+
+        .action-btn.approve-primary {
+            background: var(--success);
+            color: white;
+        }
+
+        .action-btn.approve-secondary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .action-btn.reject {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
         }
 
         /* Notification Badge */
@@ -963,6 +1103,91 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+        }
+
+        /* Notifications Panel */
+        .notifications-panel {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background: white;
+            border-radius: 0 0 var(--radius) var(--radius);
+            box-shadow: var(--shadow);
+            max-height: 70vh;
+            overflow-y: auto;
+            display: none;
+            z-index: 1001;
+        }
+
+        .notifications-header {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+
+        .notifications-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .notification-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--light-gray);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .notification-item:hover {
+            background: var(--light);
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+            font-size: 0.9rem;
+        }
+
+        .notification-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-message {
+            font-weight: 600;
+            margin-bottom: 3px;
+            font-size: 0.9rem;
+            line-height: 1.3;
+        }
+
+        .notification-time {
+            color: var(--gray);
+            font-size: 0.75rem;
         }
 
         /* Network Info Banner */
@@ -1137,6 +1362,11 @@
                 min-width: 60px;
             }
             
+            .communities-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
             .hero {
                 padding: 100px 15px 60px;
             }
@@ -1222,6 +1452,14 @@
                 font-size: 0.8rem;
             }
             
+            .member-actions {
+                flex-wrap: wrap;
+            }
+            
+            .action-btn {
+                min-width: 80px;
+            }
+            
             .post {
                 padding: 12px;
             }
@@ -1282,6 +1520,20 @@
                 width: 35px;
                 height: 35px;
                 font-size: 0.9rem;
+            }
+            
+            .community-card {
+                padding: 12px;
+            }
+            
+            .community-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            
+            .community-info h3 {
+                font-size: 0.95rem;
             }
             
             .chat-box {
@@ -1379,6 +1631,30 @@
                 font-size: 0.85rem;
             }
             
+            .community-card .btn {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            
+            .member-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .member-info {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+            
+            .member-actions {
+                width: 100%;
+            }
+            
+            .action-btn {
+                padding: 8px;
+                font-size: 0.75rem;
+            }
+            
             .chat-box {
                 height: 250px;
             }
@@ -1401,7 +1677,7 @@
         
         /* Touch Device Optimizations */
         @media (hover: none) and (pointer: coarse) {
-            .btn, .post-action, .search-category, .share-option {
+            .btn, .post-action, .search-category, .share-option, .action-btn {
                 min-height: 44px;
                 min-width: 44px;
             }
@@ -1432,6 +1708,10 @@
             .modal {
                 max-height: 80vh;
             }
+            
+            .notifications-panel {
+                max-height: 60vh;
+            }
         }
     </style>
 </head>
@@ -1460,6 +1740,17 @@
         </div>
     </nav>
 
+    <!-- Notifications Panel -->
+    <div class="notifications-panel" id="notificationsPanel">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <button class="btn btn-secondary btn-small" onclick="clearAllNotifications()">Clear All</button>
+        </div>
+        <div id="notificationsList">
+            <!-- Notifications will be loaded here -->
+        </div>
+    </div>
+
     <main>
         <div class="container">
             <!-- Alerts will be shown here -->
@@ -1471,6 +1762,43 @@
             </div>
         </div>
     </main>
+
+    <!-- Modal for creating community -->
+    <div class="modal-overlay" id="communityModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Create New Community</h2>
+                <button class="modal-close" onclick="closeModal('communityModal')">&times;</button>
+            </div>
+            <form id="createCommunityForm">
+                <div class="form-group">
+                    <label for="communityName">Community Name</label>
+                    <input type="text" class="form-control" id="communityName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="communityDescription">Description</label>
+                    <textarea class="form-control" id="communityDescription" name="description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="communityIcon">Icon</label>
+                    <select class="form-control" id="communityIcon" name="icon">
+                        <option value="users">👥 Users</option>
+                        <option value="music">🎵 Music</option>
+                        <option value="guitar">🎸 Guitar</option>
+                        <option value="microphone">🎤 Microphone</option>
+                        <option value="drum">🥁 Drum</option>
+                        <option value="piano">🎹 Piano</option>
+                        <option value="violin">🎻 Violin</option>
+                        <option value="headphones">🎧 Headphones</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Create Community</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('communityModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Modal for edit profile -->
     <div class="modal-overlay" id="profileModal">
@@ -1559,18 +1887,32 @@
         </div>
     </div>
 
+    <!-- Modal for Community Member Approval -->
+    <div class="modal-overlay" id="memberApprovalModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Approve Member Request</h2>
+                <button class="modal-close" onclick="closeModal('memberApprovalModal')">&times;</button>
+            </div>
+            <div id="memberApprovalContent">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
     <script>
         // Global state
         let currentUser = null;
         let currentMediaFile = null;
         let currentPostToShare = null;
+        let currentCommunity = null;
         let notificationsCount = 0;
         let searchDebounceTimer = null;
         
         // API Base URL - Dynamic based on current location
         const API_BASE = window.location.origin + '/api';
         
-        // Registration form instrument toggle
+        // ✅ ADDED: Registration form instrument toggle
         document.addEventListener('DOMContentLoaded', function() {
             // Listen for user_type changes in registration form
             document.addEventListener('change', function(event) {
@@ -1661,6 +2003,18 @@
             document.getElementById(modalId).style.display = 'none';
         }
         
+        function toggleNotificationsPanel() {
+            const panel = document.getElementById('notificationsPanel');
+            if (panel.style.display === 'block') {
+                panel.style.display = 'none';
+            } else {
+                panel.style.display = 'block';
+                loadNotifications();
+            }
+            // Close mobile menu if open
+            document.getElementById('navLinks').classList.remove('show');
+        }
+        
         // Authentication
         async function checkAuth() {
             try {
@@ -1675,6 +2029,7 @@
                         currentUser = data.user;
                         showNavbar(true);
                         loadPage('dashboard');
+                        loadNotificationsCount();
                         return;
                     }
                 }
@@ -1701,6 +2056,7 @@
                     <a href="#" onclick="loadPage('dashboard'); closeMobileMenu()"><i class="fas fa-home"></i> Home</a>
                     <a href="#" onclick="loadPage('feed'); closeMobileMenu()"><i class="fas fa-stream"></i> Feed</a>
                     <a href="#" onclick="loadPage('search'); closeMobileMenu()"><i class="fas fa-search"></i> Search</a>
+                    <a href="#" onclick="loadPage('communities'); closeMobileMenu()"><i class="fas fa-users"></i> Communities</a>
                     <a href="#" onclick="loadPage('find_musicians'); closeMobileMenu()"><i class="fas fa-user-friends"></i> Find Musicians</a>
                     ${currentUser.user_type === 'creator' ? 
                         `<a href="#" onclick="loadPage('create_post'); closeMobileMenu()"><i class="fas fa-plus"></i> Create</a>` : 
@@ -1714,6 +2070,10 @@
                 `;
                 
                 navActions.innerHTML = `
+                    <div class="notification-badge" onclick="toggleNotificationsPanel()" style="cursor: pointer;">
+                        <i class="fas fa-bell"></i>
+                        ${notificationsCount > 0 ? `<span class="notification-count">${notificationsCount}</span>` : ''}
+                    </div>
                     <a href="#" onclick="logout(); closeMobileMenu()" class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> <span class="logout-text">Logout</span></a>
                 `;
             } else {
@@ -1729,7 +2089,7 @@
             document.getElementById('navLinks').classList.remove('show');
         }
         
-        // View user profile by clicking on name
+        // ✅ ADDED: View user profile by clicking on name
         function viewUserProfile(userId) {
             if (userId === currentUser?.id) {
                 loadPage('profile');
@@ -1793,12 +2153,30 @@
                     contentDiv.innerHTML = getFindMusiciansPage();
                     loadCreators();
                     break;
+                case 'communities':
+                    if (!currentUser) {
+                        loadPage('login');
+                        return;
+                    }
+                    contentDiv.innerHTML = getCommunitiesPage();
+                    loadCommunities();
+                    break;
+                case 'community':
+                    if (!currentUser) {
+                        loadPage('login');
+                        return;
+                    }
+                    contentDiv.innerHTML = getCommunityPage();
+                    if (param) {
+                        loadCommunityData(param);
+                    }
+                    break;
                 case 'create_post':
                     if (!currentUser) {
                         loadPage('login');
                         return;
                     }
-                    // Only creators can access create post
+                    // ✅ CHECK: Only creators can access create post
                     if (currentUser.user_type !== 'creator') {
                         showAlert('Only creators can create posts', 'error');
                         loadPage('dashboard');
@@ -1806,12 +2184,20 @@
                     }
                     contentDiv.innerHTML = getCreatePostPage();
                     break;
+                case 'users':
+                    if (!currentUser) {
+                        loadPage('login');
+                        return;
+                    }
+                    contentDiv.innerHTML = getUsersPage();
+                    loadUsers();
+                    break;
                 case 'messages':
                     if (!currentUser) {
                         loadPage('login');
                         return;
                     }
-                    // Only creators can access messages
+                    // ✅ CHECK: Only creators can access messages
                     if (currentUser.user_type !== 'creator') {
                         showAlert('Only creators can send messages', 'error');
                         loadPage('dashboard');
@@ -1860,6 +2246,11 @@
                                 <h3>Collaborate</h3>
                                 <p>Work together on musical projects</p>
                             </div>
+                            <div class="feature-card">
+                                <i class="fas fa-user-shield"></i>
+                                <h3>Managed Communities</h3>
+                                <p>Join communities with admin-approved membership</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1885,6 +2276,7 @@
                         <p style="text-align: center; margin-top: 20px;">
                             Don't have an account? <a href="#" onclick="loadPage('register')">Register here</a>
                         </p>
+                       
                     </div>
                 </div>
             `;
@@ -1994,6 +2386,9 @@
                                 <button class="btn btn-secondary" onclick="loadPage('profile')">
                                     <i class="fas fa-user"></i> View Profile
                                 </button>
+                                <button class="btn btn-secondary" onclick="loadPage('communities')">
+                                    <i class="fas fa-users"></i> Browse Communities
+                                </button>
                                 <button class="btn btn-secondary" onclick="loadPage('find_musicians')">
                                     <i class="fas fa-user-friends"></i> Find Musicians
                                 </button>
@@ -2058,28 +2453,107 @@
             `;
         }
         
-        function getMessagesPage() {
-            // Only show to creators
-            if (currentUser?.user_type !== 'creator') {
-                return `<div class="card"><h2>Access Denied</h2><p>Only creators can send messages.</p></div>`;
-            }
-            
+        function getCommunitiesPage() {
             return `
-                <div class="dashboard-grid">
-                    <div>
-                        <div class="card">
-                            <h2>Messages</h2>
-                            <p>Connect with other creators (must follow them first)</p>
-                        </div>
-                        <div id="conversationsList"></div>
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <h2 style="margin: 0;">Music Communities</h2>
+                        ${currentUser?.user_type === 'creator' ? 
+                            `<button class="btn btn-primary" onclick="openCreateCommunityModal()">
+                                <i class="fas fa-plus"></i> Create Community
+                            </button>` : 
+                            ''
+                        }
                     </div>
-                    <div>
-                        <div class="card">
-                            <h3>Start New Conversation</h3>
-                            <div id="availableCreators"></div>
+                    <p>Join communities to connect with musicians who share your interests! Admin approval required.</p>
+                </div>
+                <div id="communitiesList"></div>
+            `;
+        }
+        
+        function getCommunityPage() {
+            return `
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <div style="flex: 1; min-width: 250px;">
+                            <h2 id="communityName" style="margin: 0; font-size: 1.4rem;">Community Name</h2>
+                            <p id="communityDescription" style="margin-top: 5px;">Loading...</p>
+                        </div>
+                        <div id="communityActionButtons" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+                    </div>
+                    
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <div class="stat-number" id="communityMemberCount">0</div>
+                            <div class="stat-label">Members</div>
+                        </div>
+                        <div class="profile-stat">
+                            <div class="stat-number" id="communityPostCount">0</div>
+                            <div class="stat-label">Posts</div>
+                        </div>
+                        <div class="profile-stat">
+                            <div class="stat-number" id="communityActivity">0</div>
+                            <div class="stat-label">Active Now</div>
                         </div>
                     </div>
                 </div>
+                
+                <div class="dashboard-grid">
+                    <div>
+                        <div class="card">
+                            <h3>Community Feed</h3>
+                            <div id="communityPosts"></div>
+                        </div>
+                        
+                        ${currentUser && currentUser.user_type === 'creator' ? 
+                            `<div class="card" id="communityPostFormSection" style="display: none;">
+                                <h3>Create Post in Community</h3>
+                                <form id="communityPostForm">
+                                    <div class="form-group">
+                                        <input type="text" class="form-control" id="communityPostTitle" placeholder="Post title" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <textarea class="form-control" id="communityPostContent" rows="3" placeholder="Share something with the community..." required></textarea>
+                                    </div>
+                                    <input type="hidden" id="communityId" name="community_id">
+                                    <button type="submit" class="btn btn-primary">Post to Community</button>
+                                </form>
+                            </div>` : 
+                            ''
+                        }
+                    </div>
+                    
+                    <div>
+                        <div class="card">
+                            <h3>Community Members</h3>
+                            <div id="communityMembers"></div>
+                        </div>
+                        
+                        <div id="communityAdminPanel">
+                            <!-- Admin panel will be loaded here if user is admin -->
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function getUsersPage() {
+            return `
+                <div class="card">
+                    <h2>Find Musicians</h2>
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="userSearchInput" 
+                               placeholder="Search by username, instrument..." 
+                               onkeyup="debounceSearchUsers()">
+                        <button class="search-button" onclick="searchUsers()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="search-categories" id="instrumentFilters">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                <div id="usersList"></div>
             `;
         }
         
@@ -2095,18 +2569,19 @@
                         <button class="search-category active" onclick="setSearchCategory('all')">All</button>
                         <button class="search-category" onclick="setSearchCategory('users')">Creators</button>
                         <button class="search-category" onclick="setSearchCategory('posts')">Posts</button>
+                        <button class="search-category" onclick="setSearchCategory('communities')">Communities</button>
                     </div>
                 </div>
                 <div id="searchResults">
                     <div class="card">
-                        <p>Enter a search term above to find creators or posts</p>
+                        <p>Enter a search term above to find creators, posts, or communities</p>
                     </div>
                 </div>
             `;
         }
 
         function getCreatePostPage() {
-            // Only show to creators
+            // ✅ CHECK: Only show to creators
             if (currentUser?.user_type !== 'creator') {
                 return `<div class="card"><h2>Access Denied</h2><p>Only creators can create posts.</p></div>`;
             }
@@ -2161,6 +2636,31 @@
                             <button type="button" class="btn btn-secondary" onclick="loadPage('dashboard')" style="margin-left: 10px;">Cancel</button>
                         </div>
                     </form>
+                </div>
+            `;
+        }
+        
+        function getMessagesPage() {
+            // ✅ CHECK: Only show to creators
+            if (currentUser?.user_type !== 'creator') {
+                return `<div class="card"><h2>Access Denied</h2><p>Only creators can send messages.</p></div>`;
+            }
+            
+            return `
+                <div class="dashboard-grid">
+                    <div>
+                        <div class="card">
+                            <h2>Messages</h2>
+                            <p>Connect with other creators (must follow them first)</p>
+                        </div>
+                        <div id="conversationsList"></div>
+                    </div>
+                    <div>
+                        <div class="card">
+                            <h3>Start New Conversation</h3>
+                            <div id="availableCreators"></div>
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -2277,33 +2777,15 @@
                             .slice(0, 3);
                         
                         if (filteredUsers.length > 0) {
-                            // Check follow status for each user
-                            const usersWithFollowStatus = await Promise.all(filteredUsers.map(async (user) => {
-                                try {
-                                    const checkResponse = await fetch(`${API_BASE}/users/${currentUser.id}/following/check/${user.id}`, {
-                                        credentials: 'include'
-                                    });
-                                    if (checkResponse.ok) {
-                                        const checkData = await checkResponse.json();
-                                        return { ...user, is_following: checkData.is_following };
-                                    }
-                                } catch (error) {
-                                    console.error('Error checking follow status:', error);
-                                }
-                                return { ...user, is_following: false };
-                            }));
-                            
-                            usersContainer.innerHTML = usersWithFollowStatus.map(user => `
+                            usersContainer.innerHTML = filteredUsers.map(user => `
                                 <div class="user-card" data-user-id="${user.id}">
                                     <div class="user-avatar" onclick="viewUserProfile(${user.id})">${user.username?.charAt(0) || 'U'}</div>
                                     <div class="user-info">
                                         <div class="user-name" onclick="viewUserProfile(${user.id})">${user.username || 'User'}</div>
                                         <div class="user-instrument">${user.instrument || 'Musician'}</div>
                                     </div>
-                                    <button class="btn ${user.is_following ? 'btn-secondary' : 'btn-primary'} follow-btn" onclick="toggleFollow(${user.id})">
-                                        ${user.is_following ? 
-                                            '<i class="fas fa-user-check"></i> Following' : 
-                                            '<i class="fas fa-user-plus"></i> Follow'}
+                                    <button class="btn btn-primary follow-btn" onclick="toggleFollow(${user.id})">
+                                        <i class="fas fa-user-plus"></i> Follow
                                     </button>
                                 </div>
                             `).join('');
@@ -2379,8 +2861,14 @@
                 </button>
             ` : '';
             
+            const communityBadge = post.community_name ? `
+                <span class="status-badge status-primary" style="margin-left: 10px;">
+                    <i class="fas fa-users"></i> ${post.community_name}
+                </span>
+            ` : '';
+            
             const creatorBadge = post.user_type === 'creator' ? `
-                <span class="status-badge status-primary" style="margin-left: 5px;">
+                <span class="status-badge status-secondary" style="margin-left: 5px;">
                     <i class="fas fa-star"></i> Creator
                 </span>
             ` : '';
@@ -2394,6 +2882,7 @@
                                 <span class="post-user" onclick="viewUserProfile(${post.user_id})">${post.username || 'User'}</span>
                                 <span class="post-instrument">${post.user_instrument || ''}</span>
                                 ${creatorBadge}
+                                ${communityBadge}
                             </div>
                             <span class="post-time">${post.time_ago || 'Recently'}</span>
                         </div>
@@ -2452,29 +2941,11 @@
                             `;
                         }
                         
-                        // Check follow status for each user
-                        const usersWithFollowStatus = await Promise.all(data.users.map(async (user) => {
-                            if (currentUser && user.id !== currentUser.id) {
-                                try {
-                                    const checkResponse = await fetch(`${API_BASE}/users/${currentUser.id}/following/check/${user.id}`, {
-                                        credentials: 'include'
-                                    });
-                                    if (checkResponse.ok) {
-                                        const checkData = await checkResponse.json();
-                                        return { ...user, is_following: checkData.is_following };
-                                    }
-                                } catch (error) {
-                                    console.error('Error checking follow status:', error);
-                                }
-                            }
-                            return { ...user, is_following: false };
-                        }));
-                        
                         // Load creators
                         creatorsContainer.innerHTML = `
                             <div class="card">
                                 <h3>Creators (${data.total || data.users.length})</h3>
-                                ${usersWithFollowStatus.map(user => `
+                                ${data.users.map(user => `
                                     <div class="user-card" data-user-id="${user.id}">
                                         <div class="user-avatar" onclick="viewUserProfile(${user.id})">${user.username?.charAt(0) || 'U'}</div>
                                         <div class="user-info">
@@ -2482,10 +2953,8 @@
                                             <div class="user-instrument">${user.instrument || 'Musician'} • ${user.location || 'Unknown'} • ${user.follower_count || 0} followers</div>
                                         </div>
                                         ${currentUser && user.id !== currentUser.id ? 
-                                            `<button class="btn ${user.is_following ? 'btn-secondary' : 'btn-primary'} follow-btn" onclick="toggleFollow(${user.id})">
-                                                ${user.is_following ? 
-                                                    '<i class="fas fa-user-check"></i> Following' : 
-                                                    '<i class="fas fa-user-plus"></i> Follow'}
+                                            `<button class="btn btn-primary follow-btn" onclick="toggleFollow(${user.id})">
+                                                <i class="fas fa-user-plus"></i> <span class="follow-text">Follow</span>
                                             </button>` : ''
                                         }
                                         ${currentUser && currentUser.user_type === 'creator' && user.id !== currentUser.id ? 
@@ -2535,6 +3004,10 @@
                                             <div class="user-name" onclick="viewUserProfile(${conv.user_id})">${conv.username || 'User'}</div>
                                             <div class="user-instrument">${conv.last_message || 'No messages yet'}</div>
                                         </div>
+                                        ${conv.unread_count > 0 ? 
+                                            `<span class="notification-count">${conv.unread_count}</span>` : 
+                                            ''
+                                        }
                                     </div>
                                 `).join('')}
                             </div>
@@ -2588,7 +3061,7 @@
             }
         }
         
-        // WhatsApp-style conversation
+        // ✅ UPDATED: WhatsApp-style conversation
         async function openConversation(userId) {
             document.getElementById('messageModalTitle').textContent = 'Loading...';
             document.getElementById('messageContent').innerHTML = showLoading();
@@ -2728,23 +3201,7 @@
                         const user = data.user;
                         const isOwnProfile = currentUser && user.id === currentUser.id;
                         
-                        // Check if current user follows this profile
-                        let isFollowing = false;
-                        if (currentUser && !isOwnProfile) {
-                            try {
-                                const checkResponse = await fetch(`${API_BASE}/users/${currentUser.id}/following/check/${user.id}`, {
-                                    credentials: 'include'
-                                });
-                                if (checkResponse.ok) {
-                                    const checkData = await checkResponse.json();
-                                    isFollowing = checkData.is_following;
-                                }
-                            } catch (error) {
-                                console.error('Error checking follow status:', error);
-                            }
-                        }
-                        
-                        // Hide followers section for listeners
+                        // ✅ FIX: Hide followers section for listeners
                         const followersSection = user.user_type === 'creator' ? 
                             `<div class="profile-stat">
                                 <div class="stat-number">${user.follower_count || 0}</div>
@@ -2775,10 +3232,8 @@
                                         `<button class="btn btn-primary" onclick="openEditProfileModal()">
                                             <i class="fas fa-edit"></i> Edit Profile
                                         </button>` :
-                                        `<button class="btn ${isFollowing ? 'btn-secondary' : 'btn-primary'}" id="followBtn" onclick="toggleFollow(${user.id})">
-                                            ${isFollowing ? 
-                                                '<i class="fas fa-user-check"></i> Following' : 
-                                                '<i class="fas fa-user-plus"></i> Follow'}
+                                        `<button class="btn btn-primary" id="followBtn" onclick="toggleFollow(${user.id})">
+                                            <i class="fas fa-user-plus"></i> Follow
                                         </button>`
                                     }
                                     ${!isOwnProfile && currentUser?.user_type === 'creator' && user.user_type === 'creator' ? 
@@ -2845,6 +3300,344 @@
             }
         }
         
+        async function loadCommunities() {
+            const communitiesContainer = document.getElementById('communitiesList');
+            communitiesContainer.innerHTML = showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/communities`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success && data.communities && data.communities.length > 0) {
+                        communitiesContainer.innerHTML = `
+                            <div class="communities-grid">
+                                ${data.communities.map(community => {
+                                    // ✅ FIX: Hide join button for listeners
+                                    const joinButton = currentUser?.user_type === 'creator' ? 
+                                        `<button class="btn btn-secondary join-community-btn" onclick="toggleJoinCommunity(${community.id})" 
+                                                data-community-id="${community.id}">
+                                            <i class="fas fa-users"></i> Join
+                                        </button>` : '';
+                                    
+                                    return `
+                                        <div class="community-card" data-community-id="${community.id}">
+                                            <div class="community-header">
+                                                <div class="community-icon">
+                                                    <i class="fas fa-${community.icon || 'users'}"></i>
+                                                </div>
+                                                <div class="community-info">
+                                                    <h3>${community.name || 'Community'}</h3>
+                                                    <div class="community-members">${community.member_count || 0} members</div>
+                                                </div>
+                                            </div>
+                                            <p>${community.description || 'No description provided.'}</p>
+                                            <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                                                <button class="btn btn-primary" onclick="loadCommunityPage(${community.id})">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                                ${joinButton}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `;
+                    } else {
+                        communitiesContainer.innerHTML = showEmptyState('No communities found. Be the first to create one!', 'fas fa-users');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading communities:', error);
+                communitiesContainer.innerHTML = showEmptyState('Error loading communities.', 'fas fa-exclamation-triangle');
+            }
+        }
+        
+        async function loadCommunityData(communityId) {
+            try {
+                // Load community info
+                const response = await fetch(`${API_BASE}/communities/${communityId}`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.community) {
+                        currentCommunity = data.community;
+                        
+                        document.getElementById('communityName').textContent = currentCommunity.name;
+                        document.getElementById('communityDescription').textContent = currentCommunity.description;
+                        document.getElementById('communityMemberCount').textContent = currentCommunity.member_count;
+                        document.getElementById('communityId').value = communityId;
+                        
+                        // Update action buttons based on user status
+                        const actionButtons = document.getElementById('communityActionButtons');
+                        const postFormSection = document.getElementById('communityPostFormSection');
+                        const adminPanel = document.getElementById('communityAdminPanel');
+                        
+                        if (currentCommunity.user_status === 'primary') {
+                            actionButtons.innerHTML = `
+                                <button class="btn btn-primary" onclick="loadCommunityMembers(${communityId})">
+                                    <i class="fas fa-users"></i> View Members
+                                </button>
+                                <button class="btn btn-secondary" onclick="leaveCommunity(${communityId})">
+                                    <i class="fas fa-sign-out-alt"></i> Leave
+                                </button>
+                            `;
+                            if (currentUser && currentUser.user_type === 'creator') {
+                                postFormSection.style.display = 'block';
+                            } else {
+                                postFormSection.style.display = 'none';
+                            }
+                        } else if (currentCommunity.user_status === 'secondary') {
+                            actionButtons.innerHTML = `
+                                <button class="btn btn-secondary" onclick="loadCommunityMembers(${communityId})">
+                                    <i class="fas fa-eye"></i> View Only
+                                </button>
+                                <button class="btn btn-secondary" onclick="leaveCommunity(${communityId})">
+                                    <i class="fas fa-sign-out-alt"></i> Leave
+                                </button>
+                            `;
+                            postFormSection.style.display = 'none';
+                        } else if (currentCommunity.user_status === 'pending') {
+                            actionButtons.innerHTML = `
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="fas fa-clock"></i> Request Pending
+                                </button>
+                            `;
+                            postFormSection.style.display = 'none';
+                        } else if (currentCommunity.user_status === 'rejected') {
+                            if (currentUser && currentUser.user_type === 'creator') {
+                                actionButtons.innerHTML = `
+                                    <button class="btn btn-secondary" onclick="toggleJoinCommunity(${communityId})">
+                                        <i class="fas fa-redo"></i> Re-apply
+                                    </button>
+                                `;
+                            } else {
+                                actionButtons.innerHTML = `<p class="status-badge status-rejected">Request Rejected</p>`;
+                            }
+                            postFormSection.style.display = 'none';
+                        } else {
+                            // Not a member
+                            if (currentUser && currentUser.user_type === 'creator') {
+                                actionButtons.innerHTML = `
+                                    <button class="btn btn-primary" onclick="toggleJoinCommunity(${communityId})">
+                                        <i class="fas fa-users"></i> Join Community
+                                    </button>
+                                `;
+                            } else if (currentUser && currentUser.user_type === 'listener') {
+                                actionButtons.innerHTML = `<p class="status-badge status-secondary">View Only - Join requires creator account</p>`;
+                            } else {
+                                actionButtons.innerHTML = `<p><a href="#" onclick="loadPage('login')">Login</a> to interact</p>`;
+                            }
+                            postFormSection.style.display = 'none';
+                        }
+                        
+                        // Load admin panel if user is creator and admin
+                        if (currentUser && currentCommunity.created_by === currentUser.id) {
+                            adminPanel.innerHTML = `
+                                <div class="community-admin-panel">
+                                    <h3>Community Administration</h3>
+                                    <div class="member-list" id="pendingMembersList">
+                                        <h4>Pending Requests</h4>
+                                        <div class="loading">Loading...</div>
+                                    </div>
+                                </div>
+                            `;
+                            loadPendingMembers(communityId);
+                        } else {
+                            adminPanel.innerHTML = '';
+                        }
+                        
+                        // Load community members and posts
+                        loadCommunityMembers(communityId);
+                        loadCommunityPosts(communityId);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading community data:', error);
+                showAlert('Error loading community', 'error');
+            }
+        }
+        
+        async function loadCommunityPosts(communityId) {
+            try {
+                const postsResponse = await fetch(`${API_BASE}/communities/${communityId}/posts`, {
+                    credentials: 'include'
+                });
+                
+                if (postsResponse.ok) {
+                    const data = await postsResponse.json();
+                    const postsContainer = document.getElementById('communityPosts');
+                    
+                    if (data.success && data.posts && data.posts.length > 0) {
+                        postsContainer.innerHTML = data.posts.map(post => renderPost(post)).join('');
+                        document.getElementById('communityPostCount').textContent = data.total || data.posts.length;
+                    } else {
+                        postsContainer.innerHTML = showEmptyState('No posts in this community yet.', 'fas fa-music');
+                        document.getElementById('communityPostCount').textContent = '0';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading community posts:', error);
+                document.getElementById('communityPosts').innerHTML = showEmptyState('Error loading posts.', 'fas fa-exclamation-triangle');
+            }
+        }
+        
+        async function loadPendingMembers(communityId) {
+            const pendingList = document.getElementById('pendingMembersList');
+            
+            try {
+                const response = await fetch(`${API_BASE}/communities/${communityId}/members?status=pending`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success && data.members && data.members.length > 0) {
+                        pendingList.innerHTML = `
+                            <h4>Pending Requests (${data.total})</h4>
+                            ${data.members.map(member => `
+                                <div class="member-item">
+                                    <div class="member-info">
+                                        <div class="user-avatar" onclick="viewUserProfile(${member.user_id})">${member.username?.charAt(0) || 'U'}</div>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div class="user-name" onclick="viewUserProfile(${member.user_id})">${member.username || 'User'}</div>
+                                            <div class="user-instrument">${member.user_instrument || 'Musician'}</div>
+                                        </div>
+                                        <span class="status-badge status-pending">Pending</span>
+                                    </div>
+                                    <div class="member-actions">
+                                        <button class="action-btn approve-primary" onclick="approveMember(${communityId}, ${member.id}, 'primary')">
+                                            Primary
+                                        </button>
+                                        <button class="action-btn approve-secondary" onclick="approveMember(${communityId}, ${member.id}, 'secondary')">
+                                            Secondary
+                                        </button>
+                                        <button class="action-btn reject" onclick="rejectMember(${communityId}, ${member.id})">
+                                            Reject
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        `;
+                    } else {
+                        pendingList.innerHTML = '<p style="text-align: center; color: var(--gray);">No pending requests.</p>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading pending members:', error);
+                pendingList.innerHTML = '<p style="text-align: center; color: var(--secondary);">Error loading pending requests.</p>';
+            }
+        }
+        
+        async function loadCommunityMembers(communityId) {
+            const membersContainer = document.getElementById('communityMembers');
+            membersContainer.innerHTML = showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/communities/${communityId}/members`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success && data.members && data.members.length > 0) {
+                        membersContainer.innerHTML = `
+                            <div class="member-list">
+                                ${data.members.map(member => {
+                                    let statusClass = 'status-pending';
+                                    if (member.status === 'primary') statusClass = 'status-primary';
+                                    if (member.status === 'secondary') statusClass = 'status-secondary';
+                                    if (member.status === 'rejected') statusClass = 'status-rejected';
+                                    
+                                    return `
+                                        <div class="member-item">
+                                            <div class="member-info">
+                                                <div class="user-avatar" onclick="viewUserProfile(${member.user_id})">${member.username?.charAt(0) || 'U'}</div>
+                                                <div style="flex: 1; min-width: 0;">
+                                                    <div class="user-name" onclick="viewUserProfile(${member.user_id})">${member.username || 'User'}</div>
+                                                    <div class="user-instrument">${member.user_instrument || 'Musician'}</div>
+                                                </div>
+                                                <span class="status-badge ${statusClass}">${member.status}</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `;
+                    } else {
+                        membersContainer.innerHTML = showEmptyState('No members yet.', 'fas fa-users');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading community members:', error);
+                membersContainer.innerHTML = showEmptyState('Error loading members.', 'fas fa-exclamation-triangle');
+            }
+        }
+        
+        function loadCommunityPage(communityId) {
+            loadPage('community', communityId);
+        }
+        
+        async function loadUsers() {
+            const usersContainer = document.getElementById('usersList');
+            usersContainer.innerHTML = showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/users?per_page=20`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success && data.users && data.users.length > 0) {
+                        // Load instrument filters
+                        const instruments = [...new Set(data.users.map(u => u.instrument).filter(i => i))];
+                        const filtersContainer = document.getElementById('instrumentFilters');
+                        if (filtersContainer) {
+                            filtersContainer.innerHTML = `
+                                <button class="search-category active" onclick="filterByInstrument('')">All</button>
+                                ${instruments.map(instrument => `
+                                    <button class="search-category" onclick="filterByInstrument('${instrument}')">${instrument}</button>
+                                `).join('')}
+                            `;
+                        }
+                        
+                        // Load users
+                        usersContainer.innerHTML = `
+                            <div class="card">
+                                <h3>Musicians (${data.total || data.users.length})</h3>
+                                ${data.users.map(user => `
+                                    <div class="user-card" data-user-id="${user.id}">
+                                        <div class="user-avatar" onclick="viewUserProfile(${user.id})">${user.username?.charAt(0) || 'U'}</div>
+                                        <div class="user-info">
+                                            <div class="user-name" onclick="viewUserProfile(${user.id})">${user.username || 'User'} <span class="status-badge ${user.user_type === 'creator' ? 'status-primary' : 'status-secondary'}">${user.user_type}</span></div>
+                                            <div class="user-instrument">${user.user_type === 'creator' ? user.instrument + ' • ' : ''}${user.follower_count || 0} followers</div>
+                                        </div>
+                                        ${currentUser && user.id !== currentUser.id && user.user_type === 'creator' ? 
+                                            `<button class="btn btn-primary follow-btn" onclick="toggleFollow(${user.id})">
+                                                <i class="fas fa-user-plus"></i> <span class="follow-text">Follow</span>
+                                            </button>` : ''
+                                        }
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    } else {
+                        usersContainer.innerHTML = showEmptyState('No users found.', 'fas fa-users');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                usersContainer.innerHTML = showEmptyState('Error loading users.', 'fas fa-exclamation-triangle');
+            }
+        }
+        
         // Action functions
         async function likePost(postId) {
             if (!currentUser) {
@@ -2893,7 +3686,7 @@
             }
         }
         
-        // Delete post function
+        // ✅ UPDATED: Delete post function
         async function deletePost(postId) {
             if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
                 return;
@@ -2931,6 +3724,241 @@
                 console.error('Error deleting post:', error);
                 showAlert('Error deleting post', 'error');
             }
+        }
+        
+        // Community Membership Functions
+        async function toggleJoinCommunity(communityId) {
+            if (!currentUser) {
+                showAlert('Please login to join communities', 'error');
+                loadPage('login');
+                return;
+            }
+            
+            // ✅ CHECK: Only creators can join communities
+            if (currentUser.user_type !== 'creator') {
+                showAlert('Only creators can join communities', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/communities/${communityId}/join`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        showAlert('Join request sent to community admin', 'success');
+                        
+                        // Update button on communities page
+                        const joinBtn = document.querySelector(`.join-community-btn[data-community-id="${communityId}"]`);
+                        if (joinBtn) {
+                            joinBtn.innerHTML = '<i class="fas fa-clock"></i> Request Pending';
+                            joinBtn.disabled = true;
+                        }
+                        
+                        // Reload community page if open
+                        if (currentCommunity && currentCommunity.id === communityId) {
+                            loadCommunityData(communityId);
+                        }
+                        
+                        // Reload notifications count
+                        loadNotificationsCount();
+                    } else {
+                        showAlert(data.message || 'Error joining community', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error joining community:', error);
+                showAlert('Error joining community', 'error');
+            }
+        }
+        
+        async function leaveCommunity(communityId) {
+            if (!currentUser) {
+                showAlert('Please login to leave communities', 'error');
+                loadPage('login');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to leave this community?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/communities/${communityId}/leave`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        showAlert('You have left the community', 'success');
+                        loadCommunityData(communityId);
+                    } else {
+                        showAlert(data.message || 'Error leaving community', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error leaving community:', error);
+                showAlert('Error leaving community', 'error');
+            }
+        }
+        
+        async function approveMember(communityId, memberId, status) {
+            if (!currentUser) {
+                showAlert('Please login to approve members', 'error');
+                loadPage('login');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/communities/${communityId}/members/${memberId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: status }),
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        showAlert(`Member approved as ${status}`, 'success');
+                        loadPendingMembers(communityId);
+                        loadCommunityData(communityId);
+                        loadNotificationsCount();
+                    } else {
+                        showAlert(data.message || 'Error approving member', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error approving member:', error);
+                showAlert('Error approving member', 'error');
+            }
+        }
+        
+        async function rejectMember(communityId, memberId) {
+            if (!currentUser) {
+                showAlert('Please login to reject members', 'error');
+                loadPage('login');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to reject this member?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/communities/${communityId}/members/${memberId}/reject`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        showAlert('Member request rejected', 'success');
+                        loadPendingMembers(communityId);
+                        loadNotificationsCount();
+                    } else {
+                        showAlert(data.message || 'Error rejecting member', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error rejecting member:', error);
+                showAlert('Error rejecting member', 'error');
+            }
+        }
+        
+        // Notification Functions
+        async function loadNotificationsCount() {
+            if (!currentUser) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/notifications`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        notificationsCount = data.count || 0;
+                        showNavbar(true); // Update navbar with new count
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading notifications count:', error);
+            }
+        }
+        
+        async function loadNotifications() {
+            if (!currentUser) return;
+            
+            const notificationsList = document.getElementById('notificationsList');
+            notificationsList.innerHTML = showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/notifications`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.notifications && data.notifications.length > 0) {
+                        notificationsList.innerHTML = data.notifications.map(notification => `
+                            <div class="notification-item" onclick="handleNotificationClick(${notification.id}, ${notification.community_id})">
+                                <div class="notification-content">
+                                    <div class="notification-avatar">${notification.username?.charAt(0) || 'U'}</div>
+                                    <div class="notification-details">
+                                        <div class="notification-message">${notification.message || 'New notification'}</div>
+                                        <div class="notification-time">${notification.time_ago || 'Recently'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        notificationsList.innerHTML = `
+                            <div class="empty-state" style="padding: 30px;">
+                                <i class="fas fa-bell-slash"></i>
+                                <p>No notifications</p>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                notificationsList.innerHTML = '<p>Error loading notifications</p>';
+            }
+        }
+        
+        function handleNotificationClick(notificationId, communityId) {
+            // Close notifications panel
+            document.getElementById('notificationsPanel').style.display = 'none';
+            
+            // Load the community page
+            loadPage('community', communityId);
+        }
+        
+        async function clearAllNotifications() {
+            // This would clear notifications on the server
+            // For now, just close the panel
+            document.getElementById('notificationsPanel').style.display = 'none';
+            notificationsCount = 0;
+            showNavbar(true);
+            showAlert('Notifications cleared', 'success');
         }
         
         // Social Share Functions
@@ -3089,7 +4117,7 @@
             }
         }
         
-        // Follow function with updated count sync
+        // Follow function with listener restriction
         async function toggleFollow(userId) {
             if (!currentUser) {
                 showAlert('Please login to follow users', 'error');
@@ -3142,16 +4170,6 @@
                             document.getElementById('followingCount').textContent = data.following_count;
                         }
                         
-                        // Update local currentUser counts
-                        if (currentUser) {
-                            currentUser.following_count = data.following_count;
-                        }
-                        
-                        // Update follower count if on user's own profile
-                        if (followerCountEl && data.follower_count !== undefined) {
-                            followerCountEl.textContent = data.follower_count;
-                        }
-                        
                         showAlert(data.followed ? 'You are now following this creator!' : 'You unfollowed this creator.', 'success');
                     } else {
                         showAlert(data.message || 'Cannot follow this user', 'error');
@@ -3164,6 +4182,17 @@
         }
         
         // Search and filter functions
+        function filterByInstrument(instrument) {
+            // Update active filter
+            document.querySelectorAll('#instrumentFilters .search-category').forEach(el => {
+                el.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Reload users with filter
+            showAlert(`Filtering by: ${instrument || 'All instruments'}`, 'success');
+        }
+        
         function filterCreatorsByInstrument(instrument) {
             document.querySelectorAll('#creatorFilters .search-category').forEach(el => {
                 el.classList.remove('active');
@@ -3180,7 +4209,7 @@
             event.target.classList.add('active');
         }
         
-        // Priority Search Implementation
+        // ✅ UPDATED: Priority Search Implementation
         async function performSearch() {
             const query = document.getElementById('searchInput').value;
             const activeCategory = document.querySelector('#searchCategories .search-category.active');
@@ -3271,11 +4300,54 @@
                             resultsHtml += `<div class="card"><p>No posts found matching "${query}"</p></div>`;
                         }
                         
+                        // Communities results with priority highlighting
+                        if (data.results.communities && data.results.communities.length > 0) {
+                            resultsHtml += `
+                                <div class="card">
+                                    <h3>Communities (${data.results.communities.length})</h3>
+                                    <div class="communities-grid">
+                                        ${data.results.communities.map(community => {
+                                            const isPriority = query && community.name.toLowerCase().startsWith(query.toLowerCase());
+                                            // ✅ FIX: Hide join button for listeners in search results
+                                            const joinButton = currentUser?.user_type === 'creator' ? 
+                                                `<button class="btn btn-secondary join-community-btn" onclick="toggleJoinCommunity(${community.id})" 
+                                                        data-community-id="${community.id}">
+                                                    <i class="fas fa-users"></i> Join
+                                                </button>` : '';
+                                            
+                                            return `
+                                                <div class="community-card ${isPriority ? 'priority-item' : ''}" data-community-id="${community.id}">
+                                                    <div class="community-header">
+                                                        <div class="community-icon">
+                                                            <i class="fas fa-${community.icon || 'users'}"></i>
+                                                        </div>
+                                                        <div class="community-info">
+                                                            <h3>${community.name || 'Community'}</h3>
+                                                            <div class="community-members">${community.member_count || 0} members</div>
+                                                        </div>
+                                                    </div>
+                                                    <p>${community.description || 'No description provided.'}</p>
+                                                    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                                                        <button class="btn btn-primary" onclick="loadCommunityPage(${community.id})">
+                                                            <i class="fas fa-eye"></i> View
+                                                        </button>
+                                                        ${joinButton}
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        } else if (category === 'communities' || category === 'all') {
+                            resultsHtml += `<div class="card"><p>No communities found matching "${query}"</p></div>`;
+                        }
+                        
                         if (!resultsHtml) {
                             if (query) {
                                 resultsHtml = showEmptyState(`No results found for "${query}"`, 'fas fa-search');
                             } else {
-                                resultsHtml = `<div class="card"><p>Enter a search term to find creators or posts</p></div>`;
+                                resultsHtml = `<div class="card"><p>Enter a search term to find creators, posts, or communities</p></div>`;
                             }
                         }
                         
@@ -3295,6 +4367,21 @@
             }, 500);
         }
         
+        function debounceSearchUsers() {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => {
+                searchUsers();
+            }, 500);
+        }
+        
+        function searchUsers() {
+            const query = document.getElementById('userSearchInput')?.value;
+            if (query) {
+                showAlert(`Searching users for: ${query}`, 'success');
+                // Implement actual user search here
+            }
+        }
+        
         function debounceSearchCreators() {
             clearTimeout(this.debounceTimer);
             this.debounceTimer = setTimeout(() => {
@@ -3308,6 +4395,23 @@
                 showAlert(`Searching creators for: ${query}`, 'success');
                 // Implement actual creator search here
             }
+        }
+        
+        // ✅ ADDED: Community create modal with creator check
+        function openCreateCommunityModal() {
+            if (!currentUser) {
+                showAlert('Please login to create communities', 'error');
+                loadPage('login');
+                return;
+            }
+            
+            // ✅ CHECK: Only creators can create communities
+            if (currentUser.user_type !== 'creator') {
+                showAlert('Only creators can create communities', 'error');
+                return;
+            }
+            
+            openModal('communityModal');
         }
         
         // Modal functions
@@ -3416,7 +4520,7 @@
                         return;
                     }
                     
-                    // Only creators can post
+                    // ✅ CHECK: Only creators can post
                     if (currentUser.user_type !== 'creator') {
                         showAlert('Only creators can create posts', 'error');
                         return;
@@ -3449,6 +4553,56 @@
                     } catch (error) {
                         console.error('Error creating post:', error);
                         showAlert('Error creating post', 'error');
+                    }
+                };
+            }
+            
+            // Create community form
+            const createCommunityForm = document.getElementById('createCommunityForm');
+            if (createCommunityForm) {
+                createCommunityForm.onsubmit = async (e) => {
+                    e.preventDefault();
+                    
+                    if (!currentUser) {
+                        showAlert('Please login to create communities', 'error');
+                        loadPage('login');
+                        return;
+                    }
+                    
+                    // ✅ CHECK: Only creators can create communities
+                    if (currentUser.user_type !== 'creator') {
+                        showAlert('Only creators can create communities', 'error');
+                        return;
+                    }
+                    
+                    const formData = {
+                        name: document.getElementById('communityName').value,
+                        description: document.getElementById('communityDescription').value,
+                        icon: document.getElementById('communityIcon').value
+                    };
+                    
+                    try {
+                        const response = await fetch(`${API_BASE}/communities`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(formData),
+                            credentials: 'include',
+                            mode: 'cors'
+                        });
+                        
+                        const result = await response.json();
+                        if (result.success) {
+                            showAlert('Community created successfully!', 'success');
+                            closeModal('communityModal');
+                            loadCommunities();
+                        } else {
+                            showAlert(result.message || 'Error creating community', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error creating community:', error);
+                        showAlert('Error creating community', 'error');
                     }
                 };
             }
@@ -3505,6 +4659,62 @@
                     }
                 };
             }
+            
+            // Community post form
+            const communityPostForm = document.getElementById('communityPostForm');
+            if (communityPostForm) {
+                communityPostForm.onsubmit = async (e) => {
+                    e.preventDefault();
+                    
+                    if (!currentUser) {
+                        showAlert('Please login to create posts', 'error');
+                        loadPage('login');
+                        return;
+                    }
+                    
+                    // ✅ CHECK: Only creators can post
+                    if (currentUser.user_type !== 'creator') {
+                        showAlert('Only creators can create posts', 'error');
+                        return;
+                    }
+                    
+                    const communityId = document.getElementById('communityId').value;
+                    if (!communityId) {
+                        showAlert('Community ID not found', 'error');
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('title', document.getElementById('communityPostTitle').value);
+                    formData.append('content', document.getElementById('communityPostContent').value);
+                    formData.append('post_type', 'text');
+                    formData.append('community_id', communityId);
+                    
+                    try {
+                        const response = await fetch(`${API_BASE}/posts`, {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'include',
+                            mode: 'cors'
+                        });
+                        
+                        const result = await response.json();
+                        if (result.success) {
+                            showAlert('Post created in community!', 'success');
+                            document.getElementById('communityPostTitle').value = '';
+                            document.getElementById('communityPostContent').value = '';
+                            
+                            // Reload community posts
+                            loadCommunityPosts(communityId);
+                        } else {
+                            showAlert(result.message || 'Error creating post', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error creating post:', error);
+                        showAlert('Error creating post', 'error');
+                    }
+                };
+            }
         }
         
         // Logout function
@@ -3516,6 +4726,8 @@
                 });
                 if (response.ok) {
                     currentUser = null;
+                    currentCommunity = null;
+                    notificationsCount = 0;
                     showNavbar(false);
                     loadPage('home');
                     showAlert('Logged out successfully', 'success');
@@ -3534,14 +4746,22 @@
                 if (e.target.classList.contains('modal-overlay')) {
                     e.target.style.display = 'none';
                 }
+                
+                // Close notifications panel when clicking outside
+                if (!e.target.closest('.notification-badge') && !e.target.closest('.notifications-panel')) {
+                    document.getElementById('notificationsPanel').style.display = 'none';
+                }
             });
             
             // Close modals with Escape key
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
+                    closeModal('communityModal');
                     closeModal('profileModal');
                     closeModal('shareModal');
                     closeModal('messageModal');
+                    closeModal('memberApprovalModal');
+                    document.getElementById('notificationsPanel').style.display = 'none';
                     closeMobileMenu();
                 }
             });
