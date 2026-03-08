@@ -87,7 +87,7 @@ def allowed_file(filename):
 # MODELS
 # -------------------------------
 class User(UserMixin, db.Model):
-    __tablename__ = 'users'
+    __tablename__ = 'users'  # ✅ CHANGED from 'user' to 'users'
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -97,7 +97,7 @@ class User(UserMixin, db.Model):
     bio = db.Column(db.Text, default='')
     location = db.Column(db.String(100), default='')
     profile_picture = db.Column(db.String(200), default='')
-    user_type = db.Column(db.String(20), default='creator')
+    user_type = db.Column(db.String(20), default='creator')  # ✅ ADDED: 'creator' or 'listener'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -121,6 +121,14 @@ class User(UserMixin, db.Model):
         lazy='dynamic'
     )
     
+    # Community memberships
+    community_memberships = db.relationship(
+        'CommunityMember', 
+        foreign_keys='CommunityMember.user_id',
+        backref='member_user', 
+        lazy=True
+    )
+    
     def set_password(self, password):
         self.password = generate_password_hash(password)
 
@@ -128,7 +136,7 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password, password)
     
     def to_dict(self):
-        # Listeners have no followers
+        # ✅ CHANGE #2: Listeners have no followers
         if self.user_type == 'creator':
             follower_count = Follow.query.filter_by(following_id=self.id).count()
         else:
@@ -162,6 +170,7 @@ class Post(db.Model):
     media_url = db.Column(db.String(500), default='')
     media_type = db.Column(db.String(50), default='')
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    community_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     likes = db.Column(db.Integer, default=0)
     shares = db.Column(db.Integer, default=0)
@@ -170,7 +179,9 @@ class Post(db.Model):
     comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):
+        # Optimized: Use get instead of query.get
         user = db.session.get(User, self.user_id)
+        community = db.session.get(Community, self.community_id) if self.community_id else None
         return {
             'id': self.id,
             'title': self.title,
@@ -182,6 +193,8 @@ class Post(db.Model):
             'username': user.username if user else 'Unknown',
             'user_instrument': user.instrument if user else '',
             'user_type': user.user_type if user else 'creator',
+            'community_id': self.community_id,
+            'community_name': community.name if community else None,
             'likes': self.likes,
             'shares': self.shares,
             'comment_count': len(self.comments),
@@ -215,6 +228,7 @@ class Comment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
+        # Optimized: Use get instead of query.get
         user = db.session.get(User, self.user_id)
         return {
             'id': self.id,
@@ -249,6 +263,77 @@ class Message(db.Model):
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_read = db.Column(db.Boolean, default=False)
+
+
+class Community(db.Model):
+    __tablename__ = 'community'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    description = db.Column(db.Text)
+    icon = db.Column(db.String(50), default='users')
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    member_count = db.Column(db.Integer, default=0)
+    
+    # Relationships
+    posts = db.relationship('Post', backref='community', lazy=True)
+    members = db.relationship('CommunityMember', backref='community', lazy=True)
+    
+    def to_dict(self):
+        # Optimized: Use get instead of query.get
+        creator = db.session.get(User, self.created_by)
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'icon': self.icon,
+            'created_by': self.created_by,
+            'creator_name': creator.username if creator else 'Unknown',
+            'member_count': self.member_count,
+            'created_at': self.created_at.strftime('%Y-%m-%d'),
+            'pending_requests': len([m for m in self.members if m.status == 'pending'])
+        }
+
+
+class CommunityMember(db.Model):
+    __tablename__ = 'community_member'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    community_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=False)
+    
+    # Use String instead of Enum for better PostgreSQL compatibility
+    status = db.Column(db.String(20), default='pending')  # 'pending', 'secondary', 'primary', 'rejected'
+    
+    requested_at = db.Column(db.DateTime, default=datetime.utcnow)
+    approved_at = db.Column(db.DateTime, nullable=True)
+    approved_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    
+    # Relationships with explicit foreign_keys
+    user = db.relationship('User', foreign_keys=[user_id])
+    approver = db.relationship('User', foreign_keys=[approved_by])
+    
+    # Ensure one membership per user per community
+    __table_args__ = (db.UniqueConstraint('user_id', 'community_id', name='unique_membership'),)
+
+    def to_dict(self):
+        # Optimized: Use get instead of query.get
+        user = db.session.get(User, self.user_id)
+        approver = db.session.get(User, self.approved_by) if self.approved_by else None
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'community_id': self.community_id,
+            'username': user.username if user else 'Unknown',
+            'user_instrument': user.instrument if user else '',
+            'user_type': user.user_type if user else 'creator',
+            'status': self.status,
+            'requested_at': self.requested_at.strftime('%Y-%m-%d %H:%M'),
+            'approved_at': self.approved_at.strftime('%Y-%m-%d %H:%M') if self.approved_at else None,
+            'approved_by': self.approved_by,
+            'approver_name': approver.username if approver else None
+        }
 
 
 class Follow(db.Model):
@@ -291,12 +376,32 @@ class PostShare(db.Model):
     __table_args__ = (db.UniqueConstraint('user_id', 'post_id', name='unique_share'),)
 
 
+class CommunityRequestNotification(db.Model):
+    __tablename__ = 'community_request_notification'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    community_id = db.Column(db.Integer, db.ForeignKey('community.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    # Use String instead of Enum
+    status = db.Column(db.String(20), default='pending')  # 'pending', 'approved', 'rejected'
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Define relationships with explicit foreign_keys
+    community = db.relationship('Community', foreign_keys=[community_id])
+    user = db.relationship('User', foreign_keys=[user_id])
+    admin = db.relationship('User', foreign_keys=[admin_id])
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 
-# Create tables
+# ✅ ✅ Create tables (temporarily uncomment for first deployment)
 with app.app_context():
     try:
         db.create_all()
@@ -317,7 +422,6 @@ with app.app_context():
 @app.route('/')
 def index():
     return render_template('index.html')
-
 @app.route('/robots.txt')
 def robots():
     return "User-agent: *\nAllow: /", 200, {'Content-Type': 'text/plain'}
@@ -345,6 +449,7 @@ def register():
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
+        # ✅ CHANGE #1: Get user_type and conditionally get instrument
         user_type = data.get('user_type', 'listener')
         instrument = data.get('instrument', '') if user_type == 'creator' else ''
         
@@ -460,7 +565,7 @@ def update_profile():
         if 'bio' in data:
             user.bio = data['bio']
         
-        # Only creators can update instrument
+        # ✅ FIX: Only creators can update instrument
         if 'instrument' in data and user.user_type == 'creator':
             user.instrument = data['instrument']
         
@@ -492,10 +597,13 @@ def posts():
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
         user_id = request.args.get('user_id', type=int)
+        community_id = request.args.get('community_id', type=int)
         
         query = Post.query
         if user_id:
             query = query.filter_by(user_id=user_id)
+        if community_id:
+            query = query.filter_by(community_id=community_id)
         
         posts = query.order_by(Post.created_at.desc()).paginate(
             page=page, per_page=per_page, error_out=False
@@ -515,7 +623,7 @@ def posts():
         if not current_user.is_authenticated:
             return jsonify({'success': False, 'message': 'Authentication required'}), 401
         
-        # Only creators can post
+        # ✅ CHANGE #4: Only creators can post
         if current_user.user_type != 'creator':
             abort(403)
         
@@ -548,9 +656,24 @@ def posts():
             
         title = request.form.get('title')
         content = request.form.get('content')
+        community_id = request.form.get('community_id', type=int)
         
         if not title or not content:
             return jsonify({'success': False, 'message': 'Title and content are required'}), 400
+        
+        # Check if user can post to community
+        if community_id:
+            community = Community.query.get_or_404(community_id)
+            membership = CommunityMember.query.filter_by(
+                user_id=current_user.id,
+                community_id=community_id
+            ).first()
+            
+            if not membership or membership.status != 'primary':
+                return jsonify({
+                    'success': False, 
+                    'message': 'You need primary membership to post in this community'
+                }), 403
         
         post = Post(
             title=title,
@@ -558,7 +681,8 @@ def posts():
             post_type=request.form.get('post_type', 'text'),
             media_url=media_url,
             media_type=media_type,
-            user_id=current_user.id
+            user_id=current_user.id,
+            community_id=community_id
         )
         
         db.session.add(post)
@@ -729,6 +853,7 @@ def messages():
         })
     
     elif request.method == 'POST':
+        # ✅ CHANGE #6: Enhanced messaging rules
         data = request.get_json() if request.is_json else request.form.to_dict()
         receiver_id = data.get('receiver_id')
         content = data.get('content')
@@ -741,7 +866,7 @@ def messages():
         if not receiver or receiver.user_type != 'creator':
             abort(403)
         
-        # Creators can only message creators they follow
+        # ✅ ADDED: Creator restriction - creators can only message creators they follow
         if current_user.user_type == 'creator':
             is_following = Follow.query.filter_by(
                 follower_id=current_user.id,
@@ -913,7 +1038,7 @@ def follow_user(user_id):
     
     user_to_follow = User.query.get_or_404(user_id)
     
-    # Cannot follow listeners
+    # ✅ CHANGE #5: Cannot follow listeners
     if user_to_follow.user_type != 'creator':
         return jsonify({'success': False, 'message': 'You can only follow creators'}), 400
     
@@ -941,24 +1066,6 @@ def follow_user(user_id):
         'followed': followed,
         'following_count': following_count,
         'follower_count': follower_count
-    })
-
-
-@app.route('/api/users/<int:user_id>/following/check/<int:target_id>', methods=['GET', 'OPTIONS'])
-@login_required
-def check_following(user_id, target_id):
-    """Check if user follows target - helper for frontend button state"""
-    if request.method == 'OPTIONS':
-        return make_response('', 200)
-    
-    follow = Follow.query.filter_by(
-        follower_id=user_id,
-        following_id=target_id
-    ).first()
-    
-    return jsonify({
-        'success': True,
-        'is_following': follow is not None
     })
 
 
@@ -990,7 +1097,7 @@ def get_user_followers(user_id):
         return make_response('', 200)
     
     user = User.query.get_or_404(user_id)
-    # Listeners have no followers
+    # ✅ CHANGE: Listeners have no followers
     if user.user_type != 'creator':
         return jsonify({
             'success': True,
@@ -1034,6 +1141,408 @@ def get_user_following(user_id):
 
 
 # -------------------------------
+# COMMUNITIES API
+# -------------------------------
+@app.route('/api/communities', methods=['GET', 'POST', 'OPTIONS'])
+def communities():
+    if request.method == 'OPTIONS':
+        return make_response('', 200)
+    
+    if request.method == 'GET':
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 12, type=int)
+        search = request.args.get('search', '')
+        
+        # ✅ CHANGE #4: Listeners can view communities but not join
+        query = Community.query
+        
+        if search:
+            query = query.filter(
+                Community.name.ilike(f'%{search}%') | 
+                Community.description.ilike(f'%{search}%')
+            )
+        
+        communities = query.order_by(Community.member_count.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        communities_data = [community.to_dict() for community in communities.items]
+        
+        return jsonify({
+            'success': True,
+            'communities': communities_data,
+            'total': communities.total,
+            'pages': communities.pages,
+            'current_page': communities.page
+        })
+    
+    elif request.method == 'POST':
+        if not current_user.is_authenticated:
+            return jsonify({'success': False, 'message': 'Authentication required'}), 401
+        
+        # ✅ CHECK: Only creators can create communities
+        if current_user.user_type != 'creator':
+            abort(403)
+        
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+            
+        name = data.get('name')
+        description = data.get('description', '')
+        icon = data.get('icon', 'users')
+        
+        if not name:
+            return jsonify({'success': False, 'message': 'Community name is required'}), 400
+        
+        if Community.query.filter_by(name=name).first():
+            return jsonify({'success': False, 'message': 'Community name already exists'}), 400
+        
+        community = Community(
+            name=name,
+            description=description,
+            icon=icon,
+            created_by=current_user.id
+        )
+        
+        db.session.add(community)
+        db.session.commit()
+        
+        # Creator automatically becomes primary member
+        member = CommunityMember(
+            user_id=current_user.id,
+            community_id=community.id,
+            status='primary',
+            approved_at=datetime.utcnow(),
+            approved_by=current_user.id
+        )
+        db.session.add(member)
+        community.member_count += 1
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Community created!', 'community': community.to_dict()})
+
+
+@app.route('/api/communities/<int:community_id>', methods=['GET', 'OPTIONS'])
+def get_community(community_id):
+    if request.method == 'OPTIONS':
+        return make_response('', 200)
+    
+    community = Community.query.get_or_404(community_id)
+    community_data = community.to_dict()
+    
+    # Add membership status for current user
+    if current_user.is_authenticated:
+        membership = CommunityMember.query.filter_by(
+            user_id=current_user.id,
+            community_id=community_id
+        ).first()
+        
+        if membership:
+            community_data['user_status'] = membership.status
+            community_data['membership_id'] = membership.id
+        else:
+            community_data['user_status'] = None
+            community_data['membership_id'] = None
+    
+    return jsonify({'success': True, 'community': community_data})
+
+
+@app.route('/api/communities/<int:community_id>/members', methods=['GET', 'OPTIONS'])
+def get_community_members(community_id):
+    if request.method == 'OPTIONS':
+        return make_response('', 200)
+    
+    status = request.args.get('status', '')
+    community = Community.query.get_or_404(community_id)
+    
+    query = CommunityMember.query.filter_by(community_id=community_id)
+    
+    if status:
+        query = query.filter_by(status=status)
+    
+    members = query.order_by(CommunityMember.requested_at.desc()).all()
+    members_data = [member.to_dict() for member in members]
+    
+    return jsonify({
+        'success': True,
+        'members': members_data,
+        'total': len(members_data)
+    })
+
+
+@app.route('/api/communities/<int:community_id>/join', methods=['POST', 'OPTIONS'])
+@login_required
+def join_community(community_id):
+    if request.method == 'OPTIONS':
+        return make_response('', 200)
+    
+    # ✅ CHANGE #5: Only creators can join communities
+    if current_user.user_type != 'creator':
+        abort(403)
+    
+    community = Community.query.get_or_404(community_id)
+    
+    # Check if already a member
+    existing_member = CommunityMember.query.filter_by(
+        user_id=current_user.id,
+        community_id=community_id
+    ).first()
+    
+    if existing_member:
+        if existing_member.status == 'rejected':
+            # Allow re-application if previously rejected
+            existing_member.status = 'pending'
+            existing_member.requested_at = datetime.utcnow()
+            existing_member.approved_at = None
+            existing_member.approved_by = None
+            
+            # Create notification for admin
+            notification = CommunityRequestNotification(
+                community_id=community_id,
+                user_id=current_user.id,
+                admin_id=community.created_by,
+                status='pending'
+            )
+            db.session.add(notification)
+            
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'message': 'Join request sent to admin',
+                'status': 'pending'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'You already have {existing_member.status} status in this community'
+            }), 400
+    
+    # Create membership request
+    member = CommunityMember(
+        user_id=current_user.id,
+        community_id=community_id,
+        status='pending'
+    )
+    db.session.add(member)
+    
+    # Create notification for admin
+    notification = CommunityRequestNotification(
+        community_id=community_id,
+        user_id=current_user.id,
+        admin_id=community.created_by,
+        status='pending'
+    )
+    db.session.add(notification)
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Join request sent to admin',
+        'status': 'pending'
+    })
+
+
+@app.route('/api/communities/<int:community_id>/members/<int:member_id>/approve', methods=['POST', 'OPTIONS'])
+@login_required
+def approve_member(community_id, member_id):
+    if request.method == 'OPTIONS':
+        return make_response('', 200)
+    
+    community = Community.query.get_or_404(community_id)
+    member = CommunityMember.query.get_or_404(member_id)
+    
+    # Check if current user is the admin or creator of community
+    if current_user.id != community.created_by:
+        return jsonify({'success': False, 'message': 'Only community admin can approve members'}), 403
+    
+    data = request.get_json() if request.is_json else request.form.to_dict()
+    status = data.get('status', 'secondary')  # secondary or primary
+    
+    if status not in ['secondary', 'primary']:
+        return jsonify({'success': False, 'message': 'Invalid status'}), 400
+    
+    # Update member status
+    member.status = status
+    member.approved_at = datetime.utcnow()
+    member.approved_by = current_user.id
+    
+    # Update notification
+    notification = CommunityRequestNotification.query.filter_by(
+        community_id=community_id,
+        user_id=member.user_id,
+        admin_id=current_user.id
+    ).first()
+    
+    if notification:
+        notification.status = 'approved'
+    
+    # Update community member count
+    community.member_count += 1
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': f'Member approved as {status}',
+        'member': member.to_dict()
+    })
+
+
+@app.route('/api/communities/<int:community_id>/members/<int:member_id>/reject', methods=['POST', 'OPTIONS'])
+@login_required
+def reject_member(community_id, member_id):
+    if request.method == 'OPTIONS':
+        return make_response('', 200)
+    
+    community = Community.query.get_or_404(community_id)
+    member = CommunityMember.query.get_or_404(member_id)
+    
+    # Check if current user is the admin or creator of community
+    if current_user.id != community.created_by:
+        return jsonify({'success': False, 'message': 'Only community admin can reject members'}), 403
+    
+    # Update member status
+    member.status = 'rejected'
+    member.approved_at = datetime.utcnow()
+    member.approved_by = current_user.id
+    
+    # Update notification
+    notification = CommunityRequestNotification.query.filter_by(
+        community_id=community_id,
+        user_id=member.user_id,
+        admin_id=current_user.id
+    ).first()
+    
+    if notification:
+        notification.status = 'rejected'
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Member request rejected',
+        'member': member.to_dict()
+    })
+
+
+@app.route('/api/communities/<int:community_id>/leave', methods=['POST', 'OPTIONS'])
+@login_required
+def leave_community(community_id):
+    if request.method == 'OPTIONS':
+        return make_response('', 200)
+    
+    community = Community.query.get_or_404(community_id)
+    member = CommunityMember.query.filter_by(
+        user_id=current_user.id,
+        community_id=community_id
+    ).first()
+    
+    if not member:
+        return jsonify({'success': False, 'message': 'You are not a member of this community'}), 400
+    
+    # If user is the creator, they cannot leave (must delete community instead)
+    if current_user.id == community.created_by:
+        return jsonify({'success': False, 'message': 'Community creator cannot leave. Delete community instead.'}), 400
+    
+    # Reduce member count if member was approved
+    if member.status in ['primary', 'secondary']:
+        community.member_count -= 1
+    
+    db.session.delete(member)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': 'You have left the community'
+    })
+
+
+@app.route('/api/communities/<int:community_id>/posts', methods=['GET', 'OPTIONS'])
+def get_community_posts(community_id):
+    if request.method == 'OPTIONS':
+        return make_response('', 200)
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # Only get posts specifically for this community
+    posts = Post.query.filter_by(community_id=community_id)\
+        .order_by(Post.created_at.desc())\
+        .paginate(page=page, per_page=per_page, error_out=False)
+    
+    posts_data = [post.to_dict() for post in posts.items]
+    
+    return jsonify({
+        'success': True,
+        'posts': posts_data,
+        'total': posts.total,
+        'pages': posts.pages
+    })
+
+
+# -------------------------------
+# NOTIFICATIONS API
+# -------------------------------
+@app.route('/api/notifications', methods=['GET', 'OPTIONS'])
+@login_required
+def get_notifications():
+    if request.method == 'OPTIONS':
+        return make_response('', 200)
+    
+    # Get community requests for communities where user is admin
+    admin_communities = Community.query.filter_by(created_by=current_user.id).all()
+    community_ids = [c.id for c in admin_communities]
+    
+    notifications = []
+    
+    if community_ids:
+        requests = CommunityRequestNotification.query.filter(
+            CommunityRequestNotification.community_id.in_(community_ids),
+            CommunityRequestNotification.status == 'pending'
+        ).order_by(CommunityRequestNotification.created_at.desc()).all()
+        
+        for req in requests:
+            # Optimized: Use get instead of query.get
+            user = db.session.get(User, req.user_id)
+            community = db.session.get(Community, req.community_id)
+            
+            notifications.append({
+                'id': req.id,
+                'type': 'community_request',
+                'community_id': req.community_id,
+                'community_name': community.name if community else 'Unknown',
+                'user_id': req.user_id,
+                'username': user.username if user else 'Unknown',
+                'user_instrument': user.instrument if user else '',
+                'message': f'{user.username if user else "User"} wants to join {community.name if community else "community"}',
+                'created_at': req.created_at.strftime('%Y-%m-%d %H:%M'),
+                'time_ago': get_time_ago(req.created_at),
+                'status': req.status
+            })
+    
+    return jsonify({
+        'success': True,
+        'notifications': notifications,
+        'count': len(notifications)
+    })
+
+
+def get_time_ago(dt):
+    now = datetime.utcnow()
+    diff = now - dt
+    if diff.days > 0:
+        return f'{diff.days}d ago'
+    if diff.seconds > 3600:
+        return f'{diff.seconds // 3600}h ago'
+    if diff.seconds > 60:
+        return f'{diff.seconds // 60}m ago'
+    return 'Just now'
+
+
+# -------------------------------
 # FEED API (SHOW ALL CREATORS)
 # -------------------------------
 @app.route('/api/feed', methods=['GET', 'OPTIONS'])
@@ -1045,7 +1554,7 @@ def get_feed():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     
-    # Show posts from ALL creators only
+    # ✅ CHANGE #6: Show posts from ALL creators only
     posts = Post.query.join(User).filter(User.user_type == 'creator')\
         .order_by(Post.created_at.desc())\
         .paginate(page=page, per_page=per_page, error_out=False)
@@ -1075,7 +1584,7 @@ def search():
     
     results = {}
     
-    # Priority search (starts-with first)
+    # ✅ FIXED: Priority search (starts-with first) with proper implementation
     if type_filter in ['all', 'users']:
         # Search creators only
         user_query = User.query.filter(User.user_type == 'creator')
@@ -1134,6 +1643,37 @@ def search():
         
         priority_posts = starts_with + contains
         results['posts'] = [post.to_dict() for post in priority_posts[:20]]
+    
+    if type_filter in ['all', 'communities']:
+        community_query = Community.query
+        
+        if query:
+            # Get all communities that match the query
+            all_communities = community_query.filter(
+                Community.name.ilike(f'%{query}%') |
+                Community.description.ilike(f'%{query}%')
+            ).all()
+        else:
+            all_communities = community_query.all()
+        
+        # Priority sorting for communities
+        starts_with = []
+        contains = []
+        
+        for community in all_communities:
+            if query and community.name.lower().startswith(query.lower()):
+                starts_with.append(community)
+            else:
+                contains.append(community)
+        
+        priority_communities = starts_with + contains
+        results['communities'] = [community.to_dict() for community in priority_communities[:10]]
+    
+    # If no query but filters are provided, return all results
+    if not query and (instrument or location or type_filter != 'all'):
+        if not results:
+            # Return default empty results
+            results = {'users': [], 'posts': [], 'communities': []}
     
     return jsonify({'success': True, 'results': results})
 
