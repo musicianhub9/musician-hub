@@ -2152,7 +2152,7 @@
                         return;
                     }
                     contentDiv.innerHTML = getFindMusiciansPage();
-                    loadMusicians();
+                    loadCreators();
                     break;
                 case 'communities':
                     if (!currentUser) {
@@ -2436,19 +2436,21 @@
         function getFindMusiciansPage() {
             return `
                 <div class="card">
-                    <h2>Find Musicians</h2>
+                    <h2>Find Creators</h2>
+                    <p>Browse and connect with music creators</p>
                     <div class="search-box">
-                        <input type="text" id="musicianSearch" class="search-input" placeholder="Search musicians...">
+                        <input type="text" class="search-input" id="creatorSearchInput" 
+                               placeholder="Search by username, instrument..." 
+                               onkeyup="debounceSearchCreators()">
+                        <button class="search-button" onclick="searchCreators()">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
-                    <select id="instrumentFilter" class="form-control">
-                        <option value="all">All Instruments</option>
-                        <option value="guitar">Guitar</option>
-                        <option value="drums">Drums</option>
-                        <option value="piano">Piano</option>
-                        <option value="violin">Violin</option>
-                    </select>
+                    <div class="search-categories" id="creatorFilters">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
                 </div>
-                <div id="musiciansList"></div>
+                <div id="creatorsList"></div>
             `;
         }
         
@@ -2915,41 +2917,65 @@
             `;
         }
         
-        async function loadMusicians() {
-            const instrument = document.getElementById("instrumentFilter").value.toLowerCase();
-            const search = document.getElementById("musicianSearch").value.toLowerCase();
-
-            const res = await fetch(`/api/find_musicians?instrument=${instrument}`);
-            const users = await res.json();
-
-            const container = document.getElementById("musiciansList");
-            container.innerHTML = "";
-
-            let filteredUsers = users.filter(user => {
-                const nameMatch = user.username.toLowerCase().includes(search);
-                return nameMatch;
-            });
-
-            if (filteredUsers.length === 0) {
-                container.innerHTML = "<div class='empty-state'>No musicians found</div>";
-                return;
+        // Load creators for Find Musicians page
+        async function loadCreators() {
+            const creatorsContainer = document.getElementById('creatorsList');
+            creatorsContainer.innerHTML = showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/creators?per_page=20`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success && data.users && data.users.length > 0) {
+                        // Load instrument filters
+                        const instruments = [...new Set(data.users.map(u => u.instrument).filter(i => i))];
+                        const filtersContainer = document.getElementById('creatorFilters');
+                        if (filtersContainer) {
+                            filtersContainer.innerHTML = `
+                                <button class="search-category active" onclick="filterCreatorsByInstrument('')">All</button>
+                                ${instruments.map(instrument => `
+                                    <button class="search-category" onclick="filterCreatorsByInstrument('${instrument}')">${instrument}</button>
+                                `).join('')}
+                            `;
+                        }
+                        
+                        // Load creators
+                        creatorsContainer.innerHTML = `
+                            <div class="card">
+                                <h3>Creators (${data.total || data.users.length})</h3>
+                                ${data.users.map(user => `
+                                    <div class="user-card" data-user-id="${user.id}">
+                                        <div class="user-avatar" onclick="viewUserProfile(${user.id})">${user.username?.charAt(0) || 'U'}</div>
+                                        <div class="user-info">
+                                            <div class="user-name" onclick="viewUserProfile(${user.id})">${user.username || 'User'} <span class="status-badge status-primary">Creator</span></div>
+                                            <div class="user-instrument">${user.instrument || 'Musician'} • ${user.location || 'Unknown'} • ${user.follower_count || 0} followers</div>
+                                        </div>
+                                        ${currentUser && user.id !== currentUser.id ? 
+                                            `<button class="btn btn-primary follow-btn" onclick="toggleFollow(${user.id})">
+                                                <i class="fas fa-user-plus"></i> <span class="follow-text">Follow</span>
+                                            </button>` : ''
+                                        }
+                                        ${currentUser && currentUser.user_type === 'creator' && user.id !== currentUser.id ? 
+                                            `<button class="btn btn-secondary" onclick="startMessage(${user.id})" style="margin-left: 5px;">
+                                                <i class="fas fa-envelope"></i>
+                                            </button>` : ''
+                                        }
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    } else {
+                        creatorsContainer.innerHTML = showEmptyState('No creators found.', 'fas fa-users');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading creators:', error);
+                creatorsContainer.innerHTML = showEmptyState('Error loading creators.', 'fas fa-exclamation-triangle');
             }
-
-            filteredUsers.forEach(user => {
-                container.innerHTML += `
-                    <div class="user-card">
-                        <div class="user-avatar">${user.username[0].toUpperCase()}</div>
-                        <div class="user-info">
-                            <div class="user-name">${user.username}</div>
-                            <div class="user-instrument">${user.instrument || "Not specified"}</div>
-                        </div>
-                    </div>
-                `;
-            });
         }
-
-        document.getElementById("musicianSearch").addEventListener("input", loadMusicians);
-        document.getElementById("instrumentFilter").addEventListener("change", loadMusicians);
         
         // Load messages
         async function loadMessages() {
