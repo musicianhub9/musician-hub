@@ -1587,63 +1587,58 @@ def search():
     
     # ✅ FIXED: Priority search (starts-with first) with proper implementation
     if type_filter in ['all', 'users']:
-        # Search creators only
         user_query = User.query.filter(User.user_type == 'creator')
-        
+
+        # ✅ Apply instrument filter directly in DB (FAST + CORRECT)
+        if instrument:
+            user_query = user_query.filter(User.instrument.ilike(f'%{instrument}%'))
+
+        if location:
+            user_query = user_query.filter(User.location.ilike(f'%{location}%'))
+
         if query:
-            # Get all users that match the query
-            all_users = user_query.filter(
+            user_query = user_query.filter(
                 User.username.ilike(f'%{query}%') |
                 User.email.ilike(f'%{query}%') |
                 User.instrument.ilike(f'%{query}%')
-            ).all()
-        else:
-            all_users = user_query.all()
-        
-        if instrument:
-            all_users = [u for u in all_users if instrument.lower() in u.instrument.lower()]
-        
-        if location:
-            all_users = [u for u in all_users if location.lower() in (u.location or '').lower()]
-        
-        # Priority sorting: starts-with first
+            )
+
+        all_users = user_query.all()
+
+        # Priority sorting
         starts_with = []
         contains = []
-        
+
         for user in all_users:
             if query and user.username.lower().startswith(query.lower()):
                 starts_with.append(user)
             else:
                 contains.append(user)
-        
-        # Combine with priority
-        priority_users = starts_with + contains
-        results['users'] = [user.to_dict() for user in priority_users[:20]]
+
+        results['users'] = [user.to_dict() for user in (starts_with + contains)[:20]]
     
     if type_filter in ['all', 'posts']:
         post_query = Post.query.join(User).filter(User.user_type == 'creator')
-        
+
         if query:
-            # Get all posts that match the query
-            all_posts = post_query.filter(
+            post_query = post_query.filter(
                 Post.title.ilike(f'%{query}%') |
-                Post.content.ilike(f'%{query}%')
-            ).all()
-        else:
-            all_posts = post_query.all()
-        
-        # Priority sorting for posts
+                Post.content.ilike(f'%{query}%') |
+                Post.media_type.ilike(f'%{query}%')   # ✅ NEW
+            )
+
+        all_posts = post_query.all()
+
         starts_with = []
         contains = []
-        
+
         for post in all_posts:
             if query and post.title.lower().startswith(query.lower()):
                 starts_with.append(post)
             else:
                 contains.append(post)
-        
-        priority_posts = starts_with + contains
-        results['posts'] = [post.to_dict() for post in priority_posts[:20]]
+
+        results['posts'] = [post.to_dict() for post in (starts_with + contains)[:20]]
     
     if type_filter in ['all', 'communities']:
         community_query = Community.query
@@ -1685,3 +1680,4 @@ def search():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+    
