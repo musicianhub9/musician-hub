@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -379,6 +380,17 @@
         .search-box {
             display: flex;
             margin-bottom: 15px;
+        }
+
+        .search-box select {
+            padding: 12px;
+            border: 1px solid var(--light-gray);
+            border-radius: 0;
+            font-size: 0.95rem;
+            min-width: 120px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: white;
         }
 
         .search-input {
@@ -2544,8 +2556,16 @@
                     <h2>Find Musicians</h2>
                     <div class="search-box">
                         <input type="text" class="search-input" id="userSearchInput" 
-                               placeholder="Search by username, instrument..." 
+                               placeholder="Search creators..." 
                                onkeyup="debounceSearchUsers()">
+                        <select id="instrumentFilter">
+                            <option value="">All Instruments</option>
+                            <option value="guitar">Guitar</option>
+                            <option value="drums">Drums</option>
+                            <option value="piano">Piano</option>
+                            <option value="violin">Violin</option>
+                            <option value="flute">Flute</option>
+                        </select>
                         <button class="search-button" onclick="searchUsers()">
                             <i class="fas fa-search"></i>
                         </button>
@@ -4264,6 +4284,18 @@
                                     <h3>Posts (${data.results.posts.length})</h3>
                                     ${data.results.posts.map(post => {
                                         const isPriority = query && post.title.toLowerCase().startsWith(query.toLowerCase());
+                                        
+                                        let media = '';
+                                        if (post.media_url && post.media_type) {
+                                            if (post.media_type.includes('image')) {
+                                                media = `<img src="${post.media_url}" style="max-width:100%">`;
+                                            } else if (post.media_type.includes('audio')) {
+                                                media = `<audio controls src="${post.media_url}"></audio>`;
+                                            } else if (post.media_type.includes('video')) {
+                                                media = `<video controls src="${post.media_url}" style="max-width:100%"></video>`;
+                                            }
+                                        }
+                                        
                                         return `
                                             <div class="post ${isPriority ? 'priority-item' : ''}" data-post-id="${post.id}">
                                                 <div class="post-header">
@@ -4278,6 +4310,7 @@
                                                 </div>
                                                 <h4 class="post-title">${post.title || 'Untitled'}</h4>
                                                 <div class="post-content">${post.content || ''}</div>
+                                                ${media ? `<div class="post-media">${media}</div>` : ''}
                                                 <div class="post-actions">
                                                     <button class="post-action" onclick="likePost(${post.id})">
                                                         <i class="far fa-heart"></i> 
@@ -4375,11 +4408,24 @@
             }, 500);
         }
         
-        function searchUsers() {
-            const query = document.getElementById('userSearchInput')?.value;
-            if (query) {
-                showAlert(`Searching users for: ${query}`, 'success');
-                // Implement actual user search here
+        async function searchUsers() {
+            const query = document.getElementById('userSearchInput').value;
+            const instrument = document.getElementById('instrumentFilter').value;
+
+            const response = await fetch(
+                `${API_BASE}/search?q=${encodeURIComponent(query)}&type=users&instrument=${instrument}`,
+                { credentials: 'include' }
+            );
+
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('usersList').innerHTML =
+                    data.results.users.map(user => `
+                        <div class="user-card">
+                            <b>${user.username}</b> - ${user.instrument}
+                        </div>
+                    `).join('');
             }
         }
         
